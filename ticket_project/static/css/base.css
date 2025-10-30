@@ -1,0 +1,46 @@
+/* ===== Variables (clair par défaut) ===== */
+:root{
+  --bg:#ffffff;
+  --fg:#0f172a;
+  --card:#f8fafc;
+  --border:#e5e7eb;
+  --muted:#64748b;
+  --primary:#2563eb;
+  --row-alt:#f2f4f7;
+  --font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Thème sombre */
+html[data-theme="dark"]{
+  --bg:#0b1220;
+  --fg:#e5e7eb;
+  --card:#0f172a;
+  --border:#1f2937;
+  --muted:#9ca3af;
+  --primary:#60a5fa;
+  --row-alt:#0c1a2b;
+}
+
+/* Contraste élevé */
+html[data-contrast="high"]{
+  --bg:#fff; --fg:#000; --card:#fff; --border:#000; --primary:#000; --row-alt:#f0f0f0;
+}
+
+/* Taille/Police (set par JS sur <html>) */
+html{ font-size: var(--font-size-base,16px); }
+body{ background: var(--bg); color: var(--fg); font-family: var(--font-family); }
+
+/* ===== Overrides rapides Bootstrap ===== */
+.sidebar{ background: var(--card) !important; color: var(--fg) !important; }
+.sidebar a{ color: var(--fg) !important; }
+
+.table{ background: var(--card); color: var(--fg); border-color: var(--border); }
+.table td, .table th{ border-color: var(--border) !important; }
+.table-striped>tbody>tr:nth-of-type(odd)>*{ background-color: var(--row-alt) !important; }
+
+.btn-primary{ background-color: var(--primary); border-color: var(--primary); }
+.text-muted{ color: var(--muted) !important; }
+
+/* Densité compacte */
+html[data-density="compact"] .table td,
+html[data-density="compact"] .table th{ padding:.35rem .5rem; }

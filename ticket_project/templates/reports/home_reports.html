@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Tickets per Day</title>
+    <script src="{% static 'js/app_settings_boot.js' %}"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ticket_per_day.css' %}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+</head>
+
+<body>
+    <div class="d-flex min-vh-100">
+        <!-- Sidebar -->
+        <nav class="sidebar bg-dark text-white p-3">
+            <h2 class="text-center mb-4">
+                <a href="/" class="text-white text-decoration-none">TicketApp</a>
+            </h2>
+            <ul class="nav flex-column"></ul>
+        </nav>
+
+        <!-- Main content -->
+        <div class="content flex-fill pt-4 px-4">
+            <!-- Filtros -->
+            <form method="get" class="mb-4 row g-2">
+                <div class="col-auto">
+                    <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+                </div>
+                <div class="col-auto">
+                    <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+                </div>
+
+                <!-- Current State -->
+                <div class="col-auto">
+                    <select name="current_state" class="form-select">
+                        <option value="">All States</option>
+                        <option value="✎ Open" {% if request.GET.current_state == '✎ Open' %}selected{% endif %}>✎ Open</option>
+                        <option value="↻ Re-Opened" {% if request.GET.current_state == '↻ Re-Opened' %}selected{% endif %}>↻ Re-Opened</option>
+                        <option value="⇶ Inprogress | OnGoing" {% if request.GET.current_state == '⇶ Inprogress | OnGoing' %}selected{% endif %}>⇶ Inprogress | OnGoing</option>
+                        <option value="⌛ Pending 3rd Party" {% if request.GET.current_state == '⌛ Pending 3rd Party' %}selected{% endif %}>⌛ Pending 3rd Party</option>
+                        <option value="⌚ Pending Customer" {% if request.GET.current_state == '⌚ Pending Customer' %}selected{% endif %}>⌚ Pending Customer</option>
+                        <option value="🆗 Solved" {% if request.GET.current_state == '🆗 Solved' %}selected{% endif %}>🆗 Solved</option>
+                        <option value="🔻 Not Solved" {% if request.GET.current_state == '🔻 Not Solved' %}selected{% endif %}>🔻 Not Solved</option>
+                        <option value="✂ Cancelled" {% if request.GET.current_state == '✂ Cancelled' %}selected{% endif %}>✂ Cancelled</option>
+                        <option value="📅 Scheduled" {% if request.GET.current_state == '📅 Scheduled' %}selected{% endif %}>📅 Scheduled</option>
+                        <option value="✉ Reported to 3rd PartyID" {% if request.GET.current_state == '✉ Reported to 3rd PartyID' %}selected{% endif %}>✉ Reported to 3rd PartyID</option>
+                        <option value="🆗 Delivered Recommendation" {% if request.GET.current_state == '🆗 Delivered Recommendation' %}selected{% endif %}>🆗 Delivered Recommendation</option>
+                        <option value="☼ Pending analysis" {% if request.GET.current_state == '☼ Pending analysis' %}selected{% endif %}>☼ Pending analysis</option>
+                        <option value="Incomplete (Pending)" {% if request.GET.current_state == 'Incomplete (Pending)' %}selected{% endif %}>Incomplete (Pending)</option>
+                    </select>
+                </div>
+
+                <!-- Analyst Consultant -->
+                <div class="col-auto">
+                    <select name="analyst_consultant" class="form-select">
+                        <option value="">All Analysts</option>
+                        <option value="Filipe Rua" {% if request.GET.analyst_consultant == 'Filipe Rua' %}selected{% endif %}>Filipe Rua</option>
+                        <option value="Pedro Rodrigues" {% if request.GET.analyst_consultant == 'Pedro Rodrigues' %}selected{% endif %}>Pedro Rodrigues</option>
+                        <option value="SERVICE DESK" {% if request.GET.analyst_consultant == 'SERVICE DESK' %}selected{% endif %}>SERVICE DESK</option>
+                        <option value="João Martins" {% if request.GET.analyst_consultant == 'João Martins' %}selected{% endif %}>João Martins</option>
+                        <option value="Mariana Saltão" {% if request.GET.analyst_consultant == 'Mariana Saltão' %}selected{% endif %}>Mariana Saltão</option>
+                        <option value="André Rosa" {% if request.GET.analyst_consultant == 'André Rosa' %}selected{% endif %}>André Rosa</option>
+                    </select>
+                </div>
+
+               <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+               </div>
+            </form>
+
+            <!-- Plotly charts -->
+            {% for chart in charts %}
+            {{ chart|safe }}
+            {% endfor %}
+
+            <!-- ECharts Pie Chart -->
+            <hr class="my-4">
+            <h5 class="mb-3">Tickets by analyst</h5>
+            <div id="echarts_pie_analyst" style="width:100%;height:420px;"
+                data-api-url="{% url 'api_echarts_by_analyst' %}" 
+                data-query-string="{{ request.GET.urlencode }}">
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/ticket_charts.js' %}"></script>
+</body>
+
+</html>

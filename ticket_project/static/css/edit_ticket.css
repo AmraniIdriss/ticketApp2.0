@@ -1,0 +1,106 @@
+/* edit_ticket.css - Simple avec variables de thème */
+
+body {
+    font-family: var(--font-family);
+    background: var(--bg);
+    color: var(--fg);
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    margin-top: 40px;
+    max-width: 600px;
+    background: var(--card);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-med);
+    border: 1px solid var(--border);
+}
+
+.container h2 {
+    color: var(--fg);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.form-label {
+    color: var(--fg);
+    margin-top: 10px;
+}
+
+.form-control,
+.form-select,
+input[type="text"],
+textarea {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--fg);
+}
+
+.form-control:focus,
+.form-select:focus,
+input[type="text"]:focus,
+textarea:focus {
+    border-color: var(--primary);
+    background: var(--card);
+    color: var(--fg);
+}
+
+button, .btn {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+    color: white;
+}
+
+button.btn-primary, .btn.btn-primary {
+    background: var(--primary);
+}
+
+button.btn-primary:hover, .btn.btn-primary:hover {
+    background: var(--primary);
+    opacity: 0.85;
+}
+
+.btn-secondary {
+    background: var(--muted);
+    color: #fff;
+    margin-top: 10px;
+}
+
+.btn-secondary:hover {
+    background: var(--muted);
+    opacity: 0.85;
+}
+
+.alert {
+    background: var(--row-alt);
+    color: var(--fg);
+    border-color: var(--border);
+}
+
+hr {
+    border-color: var(--border);
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+        max-width: 100%;
+    }
+    form {
+        max-width: 100%;
+    }
+}

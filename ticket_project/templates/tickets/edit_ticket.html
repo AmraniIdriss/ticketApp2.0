@@ -1,0 +1,87 @@
+{% load static %}
+{% load ticket_extras %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Ticket</title>
+    <script src="{% static 'js/app_settings_boot.js' %}"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/edit_ticket.css' %}">
+    <script src="{% static 'js/update_ticket.js' %}"></script>
+</head>
+<body>
+    <div class="container mt-4">
+        <h2>Edit Ticket #{{ ticket.ticket_id }} ({{ ticket.activity_type.name }})</h2>
+        
+        <!-- Messages Django -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Nouveau champ pour l'état -->
+            <div class="mb-3">
+                <label for="current_state" class="form-label">New State</label>
+                <select class="form-select" id="new_state" name="new_state">
+                    {% for state in new_states %}
+                        <option value="{{ state.name }}" 
+                                {% if ticket.current_state.name == state.name %}selected{% endif %}>
+                            {{ state.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Nouveau champ pour l'analyste -->
+             <div class="mb-3">
+                <label for="analyst_consultant" class="form-label">Analyst Consultant *</label>
+                <select class="form-select" id="analyst_consultant" name="analyst_consultant" required>
+                    {% for analyst in analysts %}
+                        <option value="{{ analyst.pk }}" 
+                            {% if ticket.analyst_consultant and ticket.analyst_consultant.pk == analyst.pk %}selected{% endif %}>
+                            {{ analyst.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+
+
+            <!-- Champs dynamiques selon le type d'activité -->
+            {% for field in fields_to_show %}
+            <div class="mb-3">
+                <label for="{{ field }}" class="form-label">
+                    {{ field|capfirst|cut:"_" }}
+                </label>
+                <textarea class="form-control" 
+                          id="{{ field }}" 
+                          name="{{ field }}" 
+                          rows="3">{{ ticket|get_field:field }}</textarea>
+            </div>
+            {% endfor %}
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Save Changes
+                </button>
+                <a href="{% url 'view_tickets' %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

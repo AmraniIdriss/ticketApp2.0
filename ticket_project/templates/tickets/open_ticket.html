@@ -1,0 +1,75 @@
+<form method="POST">
+    {% csrf_token %}
+    
+    <label>Customer:</label>
+    <select name="customer">
+        {% for c in customers %}
+            <option value="{{ c.name }}" {% if ticket.customer == c %}selected{% endif %}>
+                {{ c.name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Reported by:</label>
+    <select name="reported_by">
+        {% for r in reported_by %}
+            <option value="{{ r.name }}" {% if ticket.reported_by == r %}selected{% endif %}>
+                {{ r.name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Activity Type:</label>
+    <select name="activity_type">
+        {% for at in activity_types %}
+            <option value="{{ at.name }}" {% if ticket.activity_type == at %}selected{% endif %}>
+                {{ at.name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Activity Type 2:</label>
+    <select name="activity_type_2">
+        <option value="">-- None --</option>
+        {% for at2 in activity_types2 %}
+            <option value="{{ at2.name }}" {% if ticket.activity_type_2 == at2 %}selected{% endif %}>
+                {{ at2.name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Activity Importance:</label>
+    <select name="activity_importance">
+        {% for ai in activity_importance %}
+            <option value="{{ ai.name }}" {% if ticket.activity_importance == ai %}selected{% endif %}>
+                {{ ai.name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Analyst Consultant:</label>
+    <select name="analyst_consultant">
+        {% for ac in analyst_consultant %}
+            <option value="{{ ac.name }}" {% if ticket.analyst_consultant == ac %}selected{% endif %}>
+                {{ ac.name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Current State:</label>
+    <select name="current_state">
+        {% for cs in current_states %}
+            <option value="{{ cs.name }}" {% if ticket.current_state == cs %}selected{% endif %}>
+                {{ cs.name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Activity Title:</label>
+    <input type="text" name="activity_title" value="{{ ticket.activity_title }}">
+
+    <label>Resolution Description:</label>
+    <textarea name="activity_resolution_description">{{ ticket.activity_resolution_description }}</textarea>
+
+    <button type="submit">Reabrir Ticket</button>
+</form>

@@ -1,0 +1,131 @@
+/* ticket_email_form.css */
+/* Compatible avec base.css + app_settings_boot.js */
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-family, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif);
+  padding-top: 70px;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Conteneur principal */
+.container {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: var(--shadow-weak);
+  transition: background 0.3s ease, border-color 0.3s ease;
+  max-width: 700px;
+}
+
+h2 {
+  color: var(--fg);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Labels */
+.form-label,
+label {
+  color: var(--fg);
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.form-label.required::after {
+  content: " *";
+  color: var(--primary);
+}
+
+/* Champs */
+.form-control,
+.form-select {
+  background: var(--card);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  background: var(--card);
+  color: var(--fg);
+}
+
+/* Bouton principal */
+.btn {
+  padding: 0.6rem 1.5rem;
+  font-weight: 500;
+  border-radius: 8px;
+  border: none;
+  transition: all 0.25s ease;
+}
+
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-med);
+}
+
+.btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Alertes Django */
+.alert {
+  background: var(--row-alt);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+/* Input file */
+input[type="file"] {
+  background: var(--card);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem;
+}
+
+input[type="file"]::-webkit-file-upload-button {
+  padding: 0.45rem 1rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+input[type="file"]::-webkit-file-upload-button:hover {
+  background: var(--primary-dark);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.2rem;
+  }
+  .btn {
+    width: 100%;
+  }
+}
+
+/* Douce transition pour les changements de thème */
+* {
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}

@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Ticket Email</title>
+     <script src="{% static 'js/app_settings_boot.js' %}"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+</head>
+<body>
+<div class="container mt-4">
+    <h2>Create Ticket Email</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- From -->
+<div class="mb-3">
+    {{ form.from_email.label_tag }}
+    {{ form.from_email }}
+</div>
+
+<!-- Subject -->
+<div class="mb-3">
+    {{ form.subject.label_tag }}
+    {{ form.subject }}
+</div>
+        <!-- To -->
+        <div class="mb-3">
+            {{ form.to_email.label_tag }}
+            {{ form.to_email }}
+            {% if form.to_email.errors %}
+                <div class="text-danger mt-1">
+                    {% for error in form.to_email.errors %}
+                        <small>{{ error }}</small><br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <small class="form-text text-muted">Separe múltiplos emails com vírgula</small>
+        </div>
+
+        <!-- CC -->
+        <div class="mb-3">
+            {{ form.cc_email.label_tag }}
+            {{ form.cc_email }}
+            {% if form.cc_email.errors %}
+                <div class="text-danger mt-1">
+                    {% for error in form.cc_email.errors %}
+                        <small>{{ error }}</small><br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <small class="form-text text-muted">Opcional - Separe múltiplos emails com vírgula</small>
+        </div>
+
+        <!-- BCC -->
+        <div class="mb-3">
+            {{ form.bcc_email.label_tag }}
+            {{ form.bcc_email }}
+            {% if form.bcc_email.errors %}
+                <div class="text-danger mt-1">
+                    {% for error in form.bcc_email.errors %}
+                        <small>{{ error }}</small><br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <small class="form-text text-muted">Opcional - Separe múltiplos emails com vírgula</small>
+        </div>
+
+        
+
+        <!-- Attachment -->
+        <div class="mb-3">
+            {{ form.attachment.label_tag }}
+            {{ form.attachment }}
+            {% if form.attachment.errors %}
+                <div class="text-danger mt-1">
+                    {% for error in form.attachment.errors %}
+                        <small>{{ error }}</small><br>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Send Email</button>
+        <a href="{% url 'view_tickets' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

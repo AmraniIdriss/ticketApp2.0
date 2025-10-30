@@ -1,0 +1,63 @@
+/* home.css - Version simple avec variables de thème */
+
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: var(--font-family);
+    background: var(--bg);
+    color: var(--fg);
+}
+
+.sidebar {
+    width: 220px;
+    min-height: 100vh;
+    background-color: var(--card);
+    color: var(--fg);
+    border-right: 1px solid var(--border);
+}
+
+.sidebar h2,
+.sidebar .nav-link {
+    color: var(--fg) !important;
+}
+
+.content {
+    flex-grow: 1;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--fg);
+}
+
+.content .table {
+    background: var(--card);
+    color: var(--fg);
+    border-color: var(--border);
+}
+
+.content .table th {
+    background: var(--thead-bg);
+    color: var(--thead-fg);
+}
+
+.content .table td {
+    border-color: var(--border) !important;
+}
+
+.content .table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: var(--row-alt) !important;
+}
+
+.content .table-striped > tbody > tr:nth-of-type(even) > * {
+    background-color: var(--row-bg) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        min-height: auto;
+        width: 100%;
+    }
+    .content {
+        padding: 10px;
+    }
+}

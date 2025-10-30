@@ -1,0 +1,66 @@
+/* ticket_per_day.css - Simple avec variables de thème */
+
+body {
+    font-family: var(--font-family);
+    background: var(--bg);
+    color: var(--fg);
+    margin: 0;
+    padding: 0;
+}
+
+.sidebar {
+    width: 220px;
+    min-height: 100vh;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+}
+
+.sidebar h2,
+.sidebar h2 a {
+    color: var(--fg) !important;
+}
+
+.content {
+    background: var(--bg);
+    color: var(--fg);
+}
+
+.form-control,
+.form-select {
+    background: var(--card);
+    color: var(--fg);
+    border-color: var(--border);
+}
+
+.form-control:focus,
+.form-select:focus {
+    background: var(--card);
+    color: var(--fg);
+    border-color: var(--primary);
+}
+
+.btn-primary {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-success {
+    background: #10b981;
+    border-color: #10b981;
+}
+
+h5 {
+    color: var(--fg);
+}
+
+hr {
+    border-color: var(--border);
+}
+
+/* Graphiques Plotly et ECharts */
+#echarts_pie_analyst {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+}

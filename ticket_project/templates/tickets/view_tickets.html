@@ -1,0 +1,193 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tickets Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <script src="{% static 'js/app_settings_boot.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="../../static/css/view_tickets.css">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+</head>
+<header>
+    <nav class="navbar navbar-expand-lg navbar-light px-4 fixed-top">
+        <a class="navbar-brand navbar-brand-theme" href="/" >Tickets Dashboard</a>
+
+         <!-- Barre de recherche -->
+    <form class="d-flex ms-3" role="search" method="GET" action="{% url 'view_tickets' %}">
+      <input class="form-control form-control-sm me-2" 
+             type="search" 
+             placeholder="Looking for..." 
+             aria-label="Search" 
+             name="q">
+    </form>
+        <div class="ms-auto">
+            <form method="POST" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+            </form>
+        </div>
+    </nav>
+</header>
+
+<body>
+    <!-- Navbar -->
+
+     <!-- ADICIONE O BLOCO DE MENSAGENS AQUI -->
+    <div class="container-fluid mt-5 pt-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    <!-- FIM DO BLOCO DE MENSAGENS -->
+    
+
+    <!-- Table container -->
+    <div class="container-fluid mt-4">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover table-bordered align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="min-width: 80px;">Ticket ID</th>
+                        <th style="min-width: 120px;">Sysdate</th>
+                        <th style="min-width: 150px;">Customer</th>
+                        <th style="min-width: 150px;">Reported User</th>
+                        <th style="min-width: 150px;">Reported By</th>
+                        <th style="min-width: 180px;">Related Tickets Id</th>
+                        <th style="min-width: 150px;">Activity Type</th>
+                        <th style="min-width: 180px;">Activity Importance</th>
+                        <th style="min-width: 150px;">Analyst Consultant</th>
+                        <th style="min-width: 150px;">Activity Type 2</th>
+                        <th style="min-width: 150px;">Current State</th>
+                        <th style="min-width: 200px;">Activity Title</th>
+                        <th style="min-width: 120px;">Activity Start</th>
+                        <th style="min-width: 120px;">Activity End</th>
+                        <th style="min-width: 250px;">Activity Resolution Description</th>
+                        <th style="min-width: 120px;">Billing</th>
+                        <th style="min-width: 120px;">Time Spent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in tickets %}
+                    <tr data-ticket-id="{{ t.ticket_id }}">
+                        <td>{{ t.ticket_id }}</td>
+                        <td>{{ t.sysdate|date:"n.j.Y H:i"|default:"-" }}</td>
+                        <td>{{ t.customer.name|default:"-" }}</td>
+                        <td>{{ t.reported_user|default:"-" }}</td>
+                        <td>{{ t.reported_by.name|default:"-" }}</td>
+                        <td>{{ t.related_ticket.ticket_id|default:"-" }}</td>
+                        <td>{{ t.activity_type.name|default:"-" }}</td>
+                        <td>{{ t.activity_importance|default:"-" }}</td>
+                        <td>{{ t.analyst_consultant.name|default:"-" }}</td>
+                        <td>{{ t.activity_type_2.name|default:"-" }}</td>
+                        <td>{{ t.current_state.name|default:"-" }}</td>
+                        <td>{{ t.activity_title|default:"-" }}</td>
+                        
+                        <!-- Activity Start with timer -->
+                        <td>
+                            <div class="timer-display mb-2">
+                                {% if t.activity_start %}
+                                    <small class="text-muted">Started:</small><br>
+                                    <span class="activity-start-display">{{ t.activity_start|date:"d.m.Y H:i:s" }}</span>
+                                {% else %}
+                                    <span class="activity-start-display text-muted">Not started</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="timer-counter mb-2">
+                                <span class="activity-start-time badge bg-info">
+                                    {% if t.activity_start and not t.activity_end %}
+                                        Running...
+                                    {% elif t.activity_start and t.activity_end %}
+                                        Finished
+                                    {% else %}
+                                        Ready to start
+                                    {% endif %}
+                                </span>
+                            </div>
+                            
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-success start-timer"
+                                    {% if t.activity_start and not t.activity_end %}disabled{% endif %}>
+                                    <i class="bi bi-play-fill"></i> 
+                                    {% if t.activity_start and not t.activity_end %}Running{% else %}Start{% endif %}
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger stop-timer"
+                                    {% if not t.activity_start or t.activity_end %}disabled{% endif %}>
+                                    <i class="bi bi-stop-fill"></i> Stop
+                                </button>
+                            </div>
+                        </td>
+                        
+                        <!-- Activity End -->
+                        <td>
+                            <div class="timer-end-display">
+                                {% if t.activity_end %}
+                                    <small class="text-muted">Ended:</small><br>
+                                    <span class="activity-end-time">{{ t.activity_end|date:"d.m.Y H:i:s" }}</span>
+                                {% else %}
+                                    <span class="activity-end-time text-muted">Not finished</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        
+                        <td>
+                            <span>{{ t.activity_resolution_description|default:"-" }}</span>
+                            <p></p>
+                            <button type="button" class="btn btn-sm btn-info ms-2 show-description-btn"
+                                data-description="{{ t.activity_resolution_description|default:"-" }}">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                            <a href="{% url 'edit_ticket' t.ticket_id %}" class="btn btn-sm btn-outline-primary ms-2">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </a>
+                        </td>
+                        <td>{{ t.billing|default:"-" }}</td>
+                        
+                        <!-- Time Spent (nouvelle colonne) -->
+                        <td>
+                            <span class="time-spent-display">
+                                {% if t.time_spent %}
+                                    {{ t.time_spent }} h
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal for Activity Resolution Description -->
+    <div class="modal fade" id="descriptionModal" tabindex="-1" aria-labelledby="descriptionModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="descriptionModalLabel">Activity Resolution Description</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="descriptionModalBody">
+            <!-- Description will be injected here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="../../static/js/view_tickets.js"></script>
+</body>
+</html>
