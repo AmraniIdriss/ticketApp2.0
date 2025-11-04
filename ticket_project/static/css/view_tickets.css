@@ -1,31 +1,26 @@
 /* ===== Thème & variables (clair par défaut) ===== */
 :root {
-  /* Couleurs générales */
   --bg: #ffffff;
   --bg-grad-start: #e9f0fa;
   --bg-grad-end: #f5f5f5;
   --fg: #0f172a;
 
-  /* Surfaces */
   --card: #ffffff;
   --row-bg: #f7fafc;
-  --row-alt: #eef3f7;
+  --row-alt: #eef3f7; 
   --thead-bg: #263445;
   --thead-fg: #ffffff;
 
-  /* Bordures / ombres */
   --border: #e5e7eb;
   --shadow-weak: 0 2px 12px rgba(0,0,0,.04);
   --shadow-med: 0 6px 32px rgba(0,0,0,.09);
 
-  /* Accent */
-  --primary: #1976d2;         /* bleu principal */
-  --info-grad-start: #4fc3f7; /* boutons info (dégradé) */
+  --primary: #1976d2;
+  --info-grad-start: #4fc3f7;
   --info-grad-end: #1976d2;
   --muted: #64748b;
 
-  /* Typo (injectées par ton JS boot) */
-  --font-size-base: 16px;     /* ton boot JS écrase */
+  --font-size-base: 16px;
   --font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -52,60 +47,62 @@ html[data-theme="dark"] {
   --muted: #9ca3af;
 }
 
-/* ===== Contraste élevé ===== */
-html[data-contrast="high"] {
-  --bg: #ffffff;
-  --bg-grad-start: #ffffff;
-  --bg-grad-end: #ffffff;
-  --fg: #000000;
-  --card: #ffffff;
-  --row-bg: #ffffff;
-  --row-alt: #f0f0f0;
-  --thead-bg: #000000;
-  --thead-fg: #ffffff;
-  --border: #000000;
-  --primary: #000000;
-}
-
-/* ===== Densité compacte ===== */
-html[data-density="compact"] .table td,
-html[data-density="compact"] .table th {
-  padding: 10px 8px !important;
-  font-size: 0.98rem;
-}
-
 /* ===== Base ===== */
-html { font-size: var(--font-size-base); }
-body {
+html, body {
+  font-size: var(--font-size-base);
   font-family: var(--font-family);
-  background: linear-gradient(135deg, var(--bg-grad-start) 0%, var(--bg-grad-end) 100%);
-  color: var(--fg);
+  height: 100%;
   margin: 0;
   padding: 0;
+  overflow-x: hidden; /* empêche le scroll horizontal global */
+  background: linear-gradient(135deg, var(--bg-grad-start) 0%, var(--bg-grad-end) 100%);
+  color: var(--fg);
 }
 
-/* Navbar (si tu as .navbar Bootstrap) */
+/* Navbar */
 .navbar {
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   border-radius: 0 0 12px 12px;
   background: var(--card) !important;
   color: var(--fg) !important;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
 }
 
-/* Navbar brand */
-.navbar-brand-theme {
-  color: var(--fg) !important;
-  font-weight: 600;
+body {
+  padding-top: 75px; /* réserve la place de la navbar */
 }
 
 /* Table container */
+.container-fluid.mt-4 {
+  height: calc(100vh - 75px); /* prend tout le reste de l'écran */
+  overflow-y: auto;
+}
+
+/* Table responsive (scroll horizontal uniquement ici) */
 .table-responsive {
-  padding: 40px 32px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100vw;
+  padding: 20px 32px;
   background: var(--card);
   border-radius: 18px;
   box-shadow: var(--shadow-med);
-  margin-top: 40px;
   border: 1px solid var(--border);
+}
+
+/* Scrollbar propre */
+.table-responsive::-webkit-scrollbar {
+  height: 10px;
+}
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
 }
 
 /* Table styles */
@@ -113,16 +110,16 @@ body {
   border-radius: 14px;
   overflow: hidden;
   box-shadow: var(--shadow-weak);
-  font-size: 1.08rem;
-  letter-spacing: 0.02em;
+  font-size: 1.05rem;
   background: var(--card);
   color: var(--fg);
+  white-space: nowrap;
 }
 
 .table th, .table td {
   vertical-align: middle;
   white-space: nowrap;
-  padding: 18px 16px;
+  padding: 16px 14px;
   border: none;
 }
 
@@ -130,113 +127,98 @@ body {
   background: var(--thead-bg);
   color: var(--thead-fg);
   font-weight: 600;
-  letter-spacing: 0.5px;
-  border-bottom: 2px solid var(--border);
-  font-size: 1.05rem;
 }
 
-.table td {
-  background: var(--row-bg);
-  color: var(--fg);
-  font-size: 1.02rem;
-  max-width: 300px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: background 0.2s, color .2s;
-  line-height: 1.7;
-}
-
-/* Hover plus doux (respecte le thème) */
 .table-hover tbody tr:hover {
   background: linear-gradient(90deg, var(--row-alt) 0%, var(--row-bg) 100%);
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
-/* Largeurs spécifiques */
-.table th:nth-child(1),
-.table td:nth-child(1) { min-width: 80px; }
-.table th:nth-child(12),
-.table td:nth-child(12) { min-width: 220px; }
-.table th:nth-child(15),
-.table td:nth-child(15) { min-width: 300px; }
-
-/* Colonne description résolution : wrap + boutons visibles */
-.table td:nth-child(15) {
-  white-space: normal;
-  overflow: visible;
-  text-overflow: unset;
+/* Modals */
+.modal-content {
+  border-radius: 14px;
+  background: var(--card);
+  color: var(--fg);
+  border: 1px solid var(--border);
 }
 
 /* Boutons */
-.btn {
-  border-radius: 8px;
-  transition: box-shadow 0.2s, background 0.2s, color .2s, border-color .2s;
-  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
-  font-size: 0.8rem;
-  padding: 0.45rem 1.15em;
-}
-
 .btn-info {
   background: linear-gradient(90deg, var(--info-grad-start) 0%, var(--info-grad-end) 100%);
   color: #fff;
   border: none;
   font-weight: 500;
 }
-.btn-info:hover, .btn-info:focus {
+.btn-info:hover {
   background: linear-gradient(90deg, var(--info-grad-end) 0%, var(--info-grad-start) 100%);
   color: #fff;
-  box-shadow: 0 2px 12px rgba(33, 150, 243, 0.18);
+}
+/* === Compactage horizontal intelligent === */
+.table {
+  table-layout: fixed; /* fixe les largeurs pour uniformiser */
+  width: 100%;
 }
 
-.btn-outline-primary {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: var(--card);
-  font-weight: 500;
-}
-.btn-outline-primary:hover, .btn-outline-primary:focus {
-  background: var(--primary);
-  color: #fff;
-  box-shadow: 0 2px 12px rgba(33, 150, 243, 0.12);
-}
-
-/* Navbar boutons */
-.navbar .btn-sm {
-  padding: 0.25rem 0.7rem;
-  font-size: 0.95rem;
-  border-radius: 6px;
+.table th,
+.table td {
+  padding: 14px 8px; /* garde une bonne hauteur */
+  font-size: 0.9rem;
+  overflow-wrap: break-word; /* permet la coupure de mots */
+  word-wrap: break-word;
+  white-space: normal; /* retour à la ligne autorisé */
+  text-overflow: unset; /* plus de "..." */
+  line-height: 1.4;
+  vertical-align: middle;
 }
 
-/* Modals */
-.modal-content {
-  border-radius: 14px;
-  box-shadow: 0 6px 32px rgba(44, 62, 80, 0.14);
-  background: var(--card);
-  color: var(--fg);
-  border: 1px solid var(--border);
-}
-.modal-header {
-  background: var(--row-alt);
-  border-bottom: 1px solid var(--border);
-  border-radius: 14px 14px 0 0;
-}
-.modal-title {
-  color: var(--primary);
-  font-weight: 700;
-  font-size: 1.15rem;
+/* Largeurs adaptées */
+.table th:nth-child(1),
+.table td:nth-child(1) { width: 50px; }  /* Ticket ID */
+.table th:nth-child(2),
+.table td:nth-child(2) { width: 90px; }  /* Sysdate */
+.table th:nth-child(3),
+.table td:nth-child(3),
+.table th:nth-child(4),
+.table td:nth-child(4),
+.table th:nth-child(5),
+.table td:nth-child(5) { width: 110px; } /* Customer / Reported */
+.table th:nth-child(6),
+.table td:nth-child(6) { width: 100px; } /* Related ID */
+.table th:nth-child(7),
+.table td:nth-child(7) { width: 100px; } /* Activity Type */
+.table th:nth-child(8),
+.table td:nth-child(8) { width: 110px; } /* Importance */
+.table th:nth-child(9),
+.table td:nth-child(9) { width: 110px; } /* Analyst */
+.table th:nth-child(10),
+.table td:nth-child(10) { width: 110px; } /* Type 2 */
+.table th:nth-child(11),
+.table td:nth-child(11) { width: 110px; } /* State */
+.table th:nth-child(12),
+.table td:nth-child(12) { width: 130px; } /* Title */
+.table th:nth-child(13),
+.table td:nth-child(13),
+.table th:nth-child(14),
+.table td:nth-child(14) { width: 100px; } /* Start/End */
+.table th:nth-child(15),
+.table td:nth-child(15) { width: 180px; } /* Description */
+.table th:nth-child(16),
+.table td:nth-child(16),
+.table th:nth-child(17),
+.table td:nth-child(17) { width: 80px; } /* Billing / Time Spent */
+
+/* Empêche le débordement horizontal */
+.table-responsive {
+  overflow-x: auto;
+  max-width: 100%;
 }
 
-/* Utilitaires timer */
-.timer-end-display { margin-bottom: 80px; }
-.timer-td { vertical-align: top !important; }
-.timer-cell { display: grid; grid-auto-rows: min-content; row-gap: 8px; }
-.timer-label { color: var(--fg); font-size: .9rem; }
-.timer-datetime { font-weight: 500; }
-.timer-actions { display: flex; gap: 8px; }
-.timer-actions.timer-spacer { min-height: 36px; background: transparent; }
-
-/* Responsive */
-@media (max-width: 900px) {
-  .table-responsive { padding: 12px 4px; border-radius: 10px; }
-  .table th, .table td { padding: 10px 6px; font-size: 0.98rem; }
+/* Petit bonus : wrap propre pour les textes longs sans casser la mise en page */
+.table td span,
+.table td p,
+.table td small {
+  display: inline-block;
+  max-width: 100%;
+  word-break: break-word;
+  white-space: normal;
 }

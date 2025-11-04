@@ -1,100 +1,101 @@
 <!DOCTYPE html>
+{% load i18n %}
 <html lang="en" data-theme="auto" data-contrast="off" data-density="normal">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings</title>
+    <title>{% trans "Settings" %}</title>
     <link rel="stylesheet" href="../../static/css/settings.css">
 </head>
 <body>
     <header class="header">
-        <h1><a href="/">Settings </a></h1>
+        <h1><a href="/">{% trans "Settings" %} </a></h1>
     </header>
 
     <main class="main">
         <div class="grid">
             <!-- Display Section -->
             <section class="card">
-                <h2>Display</h2>
+                <h2>{% trans "Display" %}</h2>
                 
                 <form class="settings-form">
                     <!-- Text Size -->
                     <fieldset>
-                        <legend>Text Size</legend>
+                        <legend>{% trans "Text Size" %}</legend>
                         <div class="radio-group">
                             <label>
                                 <input type="radio" name="fontSize" value="small">
-                                <span>Small</span>
+                                <span>{% trans "Small" %}</span>
                             </label>
                             <label>
                                 <input type="radio" name="fontSize" value="normal" checked>
-                                <span>Normal</span>
+                                <span>{% trans "Normal" %}</span>
                             </label>
                             <label>
                                 <input type="radio" name="fontSize" value="large">
-                                <span>Large</span>
+                                <span>{% trans "Large" %}</span>
                             </label>
                             <label>
                                 <input type="radio" name="fontSize" value="xlarge">
-                                <span>Extra Large</span>
+                                <span>{% trans "Extra Large" %}</span>
                             </label>
                         </div>
                     </fieldset>
 
                     <!-- Theme -->
                     <fieldset>
-                        <legend>Theme</legend>
+                        <legend>{% trans "Theme" %}</legend>
                         <div class="radio-group">
                             <label>
                                 <input type="radio" name="theme" value="light">
-                                <span>Light</span>
+                                <span>{% trans "Light" %}</span>
                             </label>
                             <label>
                                 <input type="radio" name="theme" value="dark">
-                                <span>Dark</span>
+                                <span>{% trans "Dark" %}</span>
                             </label>
                             <label>
                                 <input type="radio" name="theme" value="auto" checked>
-                                <span>Automatic</span>
+                                <span>{% trans "Automatic" %}</span>
                             </label>
                         </div>
                     </fieldset>
 
                     <!-- Contrast -->
                     <fieldset>
-                        <legend>High Contrast</legend>
+                        <legend>{% trans "High Contrast" %}</legend>
                         <div class="toggle-group">
                             <label class="toggle">
                                 <input type="checkbox" id="contrast" name="contrast" role="switch" aria-checked="false">
                                 <span class="toggle-slider"></span>
-                                <span class="toggle-label">Enable high contrast</span>
+                                <span class="toggle-label">{% trans "Enable high contrast" %}</span>
                             </label>
                         </div>
                     </fieldset>
 
                     <!-- Density -->
                     <fieldset>
-                        <legend>Interface Density</legend>
+                        <legend>{% trans "Interface Density" %}</legend>
                         <div class="radio-group">
                             <label>
                                 <input type="radio" name="density" value="compact">
-                                <span>Compact</span>
+                                <span>{% trans "Compact" %}</span>
                             </label>
                             <label>
                                 <input type="radio" name="density" value="normal" checked>
-                                <span>Normal</span>
+                                <span>{% trans "Normal" %}</span>
                             </label>
                         </div>
                     </fieldset>
 
                     <!-- Font -->
                     <fieldset>
-                        <legend>Font Family</legend>
+                        <legend>{% trans "Font Family" %}</legend>
                         <select name="fontFamily" id="fontFamily" class="select">
-                            <option value="system-ui">System</option>
-                            <option value="serif">Serif</option>
-                            <option value="monospace">Monospace</option>
-                            <option value="cursive">Cursive</option>
+                            <option value="system-ui">{% trans "System" %}</option>
+                            <option value="serif">{% trans "Serif" %}</option>
+                            <option value="monospace">{% trans "Monospace" %}</option>
+                            <option value="cursive">{% trans "Cursive" %}</option>
                         </select>
                     </fieldset>
                 </form>
@@ -102,54 +103,54 @@
 
             <!-- General Preferences Section -->
             <section class="card">
-                <h2>General Preferences</h2>
+                <h2>{% trans "General Preferences" %}</h2>
                 
-                <form class="settings-form">
+                <form class="settings-form" id="languageForm" method="post" action="{% url 'set_language' %}">
+                    {% csrf_token %}
                     <fieldset>
-                        <legend>Language</legend>
+                        <legend>{% trans "Language" %}</legend>
                         <select name="language" id="language" class="select">
-                            <option value="fr">French</option>
-                            <option value="en">English</option>
-                            <option value="de">German</option>
-                            <option value="es">Spanish</option>
+                            <option value="fr">{% trans "French" %}</option>
+                            <option value="en">{% trans "English" %}</option>
+                            <option value="de">{% trans "German" %}</option>
+                            <option value="es">{% trans "Spanish" %}</option>
                         </select>
+                        <input type="hidden" name="next" value="/">
                     </fieldset>
                 </form>
 
                 <!-- Disabled placeholders -->
                 <div class="card disabled" aria-disabled="true">
-                    <h3 class="muted">Change password</h3>
-                    <p class="muted">Feature coming soon</p>
+                    <h3 class="muted">{% trans "Change password" %}</h3>
+                    <p class="muted">{% trans "Feature coming soon" %}</p>
                 </div>
 
                 <div class="card disabled" aria-disabled="true">
-                    <h3 class="muted">Change email address</h3>
-                    <p class="muted">Feature coming soon</p>
+                    <h3 class="muted">{% trans "Change email address" %}</h3>
+                    <p class="muted">{% trans "Feature coming soon" %}</p>
                 </div>
 
                 <div class="card disabled" aria-disabled="true">
-                    <h3 class="muted">Manage user</h3>
-                    <p class="muted">Feature coming soon</p>
+                    <h3 class="muted">{% trans "Manage user" %}</h3>
+                    <p class="muted">{% trans "Feature coming soon" %}</p>
                 </div>
             </section>
 
             <!-- Preview Section -->
             <section class="card preview-card">
-                <h2>Preview</h2>
+                <h2>{% trans "Preview" %}</h2>
                 <div class="preview-content">
-                    <h3>Sample Title</h3>
+                    <h3>{% trans "Sample Title" %}</h3>
                     <p>
-                        This is a demonstration paragraph to visualize the effect 
-                        of display settings. You can change the text size, 
-                        theme, contrast, and font to see the changes in real time.
+                        {% trans "This is a demonstration paragraph to visualize the effect of display settings. You can change the text size, theme, contrast, and font to see the changes in real time." %}
                     </p>
                     <div class="preview-controls">
-                        <button type="button" class="btn btn-primary">Sample Button</button>
-                        <input type="text" class="input" placeholder="Input field" aria-label="Demo field">
+                        <button type="button" class="btn btn-primary">{% trans "Sample Button" %}</button>
+                        <input type="text" class="input" placeholder="{% trans "Input field" %}" aria-label="{% trans "Demo field" %}">
                     </div>
                     <div class="preview-card-demo card">
-                        <h4>Sample Card</h4>
-                        <p class="muted">Content of a card with secondary text</p>
+                        <h4>{% trans "Sample Card" %}</h4>
+                        <p class="muted">{% trans "Content of a card with secondary text" %}</p>
                     </div>
                 </div>
             </section>
@@ -157,8 +158,8 @@
     </main>
 
     <footer class="footer">
-        <button type="button" id="resetBtn" class="btn btn-secondary">Restore default settings</button>
-        <a href="#" class="footer-link" aria-label="About the application">About</a>
+        <button type="button" id="resetBtn" class="btn btn-secondary">{% trans "Restore default settings" %}</button>
+        <a href="#" class="footer-link" aria-label="{% trans "About the application" %}">{% trans "About" %}</a>
     </footer>
 
     <script src="../../static/js/settings.js"> </script>

@@ -188,6 +188,15 @@
                 const name = e.target.name;
                 const value = e.target.value;
                 saveSettings({ [name]: value });
+
+                // If language changed, inform server to switch translations
+                if (name === 'language') {
+                    postLanguageChange(value).catch(() => {
+                        // if network fails, try to submit language form as fallback
+                        const form = document.getElementById('languageForm');
+                        if (form) form.submit();
+                    });
+                }
             });
         });
         
@@ -238,5 +247,47 @@
         reset: resetSettings,
         apply: applySettings
     };
+
+    // ==========================================
+    // LANGUAGE POST (server-side)
+    // ==========================================
+
+    /**
+     * Read a cookie by name
+     * @param {string} name
+     */
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    }
+
+    /**
+     * Post new language to Django's set_language view
+     * @param {string} lang
+     */
+    async function postLanguageChange(lang) {
+        const url = '/i18n/setlang/';
+        const form = new URLSearchParams();
+        form.append('language', lang);
+        // ask server to redirect to current path after change
+        form.append('next', window.location.pathname || '/');
+
+        const csrftoken = getCookie('csrftoken');
+
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrftoken || ''
+            },
+            body: form.toString(),
+            credentials: 'same-origin'
+        });
+
+        if (!res.ok) throw new Error('Failed to set language');
+        return res;
+    }
 
 })();

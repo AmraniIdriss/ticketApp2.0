@@ -1,0 +1,15 @@
+Filters to show distribution all tickets by customer, analyst, reported user
+Which user has open the most tickets 
+Colors to show 
+
+Dashboard : 
+3 graphics on the top
+	1 all tickets just oppened 
+	2 tickets that depends on me by customer by state by integrity
+	filters for open scheduled, repoen etc... 
+	
+
+Jour 1 pour lock in pour de vrai : 
+
+J'ai juste arrangé pour que ça soit pas chiant 
+dans view tickets
