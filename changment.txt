@@ -13,3 +13,7 @@ Jour 1 pour lock in pour de vrai :
 
 J'ai juste arrangé pour que ça soit pas chiant 
 dans view tickets
+
+Jour 2 : 
+
+Objectif realiste, mettre un timer pour tout les tickets

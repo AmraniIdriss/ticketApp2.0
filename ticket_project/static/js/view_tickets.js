@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Utils
   const $ = (sel, scope = document) => scope.querySelector(sel);
+  const $$ = (sel, scope = document) => scope.querySelectorAll(sel);
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -14,6 +15,158 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector("[name=csrfmiddlewaretoken]")?.value ||
     getCookie("csrftoken") ||
     "";
+
+  // Row Selection System
+  let selectedTicket = null;
+  
+  function updateRowSelection(checkbox, shouldCheck = true) {
+    // Deselect any previously selected row
+    const previouslySelected = $('.ticket-select:checked');
+    if (previouslySelected && previouslySelected !== checkbox) {
+      previouslySelected.checked = false;
+      previouslySelected.closest('tr')?.classList.remove('table-active');
+    }
+    
+    const row = checkbox.closest('tr');
+    checkbox.checked = shouldCheck;
+    
+    if (checkbox.checked) {
+      selectedTicket = checkbox.value;
+      row.classList.add('table-active');
+      updateControlButtons();
+    } else {
+      selectedTicket = null;
+      row.classList.remove('table-active');
+      updateControlButtons();
+    }
+    
+    console.log('Selected ticket:', selectedTicket);
+  }
+  
+  // Update the state of centralized control buttons
+  function updateControlButtons() {
+    const startBtn = $('#globalStartBtn');
+    const stopBtn = $('#globalStopBtn');
+    
+    if (!selectedTicket) {
+      startBtn.disabled = true;
+      stopBtn.disabled = true;
+      return;
+    }
+    
+    const selectedRow = document.querySelector(`tr[data-ticket-id="${selectedTicket}"]`);
+    if (!selectedRow) return;
+    
+    const statusBadge = selectedRow.querySelector('.activity-start-time');
+    const statusText = statusBadge?.textContent.trim();
+    
+    // Enable/disable based on timer state
+    if (statusText === 'Running...') {
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+    } else if (statusText === 'Finished') {
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    } else {
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    }
+  }
+  
+  // Handle checkbox selection
+  document.addEventListener('change', (e) => {
+    if (e.target.matches('.ticket-select')) {
+      updateRowSelection(e.target, e.target.checked);
+    }
+  });
+
+  // -------------------------------
+  // Time-to-start timers (created -> activity_start)
+  // -------------------------------
+  const timeToStartIntervals = new Map();
+
+  function formatDuration(ms) {
+    if (ms < 0) ms = 0;
+    const totalSec = Math.floor(ms / 1000);
+    const days = Math.floor(totalSec / 86400);
+    const hours = Math.floor((totalSec % 86400) / 3600);
+    const mins = Math.floor((totalSec % 3600) / 60);
+    const secs = totalSec % 60;
+    let parts = [];
+    if (days) parts.push(days + 'd');
+    if (hours || days) parts.push(String(hours).padStart(2, '0') + 'h');
+    parts.push(String(mins).padStart(2, '0') + 'm');
+    parts.push(String(secs).padStart(2, '0') + 's');
+    return parts.join(' ');
+  }
+
+  function stopTimeToStartForRow(row, activityStartISO) {
+    const ticketId = row.dataset.ticketId;
+    const createdISO = row.dataset.created;
+    if (!createdISO || !activityStartISO) return;
+    // clear interval if running
+    const key = ticketId;
+    if (timeToStartIntervals.has(key)) {
+      clearInterval(timeToStartIntervals.get(key));
+      timeToStartIntervals.delete(key);
+    }
+    const created = new Date(createdISO);
+    const activityStart = new Date(activityStartISO);
+    const diff = activityStart - created;
+    const el = row.querySelector('.time-to-start-display');
+    if (el) el.textContent = formatDuration(diff) + ' (to start)';
+  }
+
+  function startTimeToStartForRow(row) {
+    const ticketId = row.dataset.ticketId;
+    const createdISO = row.dataset.created;
+    const activityStartISO = row.dataset.activityStart || row.dataset.activityStart || row.getAttribute('data-activity-start');
+    const display = row.querySelector('.time-to-start-display');
+    if (!createdISO || !display) return;
+
+    if (activityStartISO) {
+      // already started: show final value
+      stopTimeToStartForRow(row, activityStartISO);
+      return;
+    }
+
+    // live timer until activity_start is set
+    function tick() {
+      const now = new Date();
+      const created = new Date(createdISO);
+      const diff = now - created;
+      display.textContent = formatDuration(diff) + ' (waiting)';
+    }
+
+    tick();
+    const interv = setInterval(tick, 1000);
+    timeToStartIntervals.set(ticketId, interv);
+  }
+
+  // initialize timers for all rows
+  document.querySelectorAll('tbody tr[data-ticket-id]').forEach(row => {
+    // ensure dataset.created is present if data-created attribute exists
+    if (!row.dataset.created) {
+      const d = row.getAttribute('data-created');
+      if (d) row.dataset.created = d;
+    }
+    if (!row.dataset.activityStart) {
+      const as = row.getAttribute('data-activity-start');
+      if (as) row.dataset.activityStart = as;
+    }
+    startTimeToStartForRow(row);
+  });
+  
+  // Handle row click selection
+  document.addEventListener('click', (e) => {
+    const row = e.target.closest('tr');
+    if (row && !e.target.matches('button, a, input, .btn-group *, .show-description-btn *')) {
+      const checkbox = row.querySelector('.ticket-select');
+      if (checkbox) {
+        updateRowSelection(checkbox, !checkbox.checked);
+      }
+    }
+  });
 
   // Function to format a date
   const formatDateTime = (dateString) => {
@@ -35,29 +188,31 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 2) TIMER with display update
+  // 2) CENTRALIZED TIMER CONTROLS
   console.log("[Timer] Timer initialization");
 
-  document.addEventListener('click', function (e) {
-    // START BUTTON
-    const startButton = e.target.closest('.start-timer');
-    if (startButton) {
-      console.log('Start button clicked');
-      const row = startButton.closest('tr');
-      const ticketId = row.querySelector('td:first-child').textContent.trim();
-      console.log('Ticket ID:', ticketId);
-      const csrfToken = getCSRF();
+  // Global Start Button
+  const globalStartBtn = $('#globalStartBtn');
+  if (globalStartBtn) {
+    globalStartBtn.addEventListener('click', function() {
+      if (!selectedTicket) {
+        alert('Please select a ticket first');
+        return;
+      }
 
+      const row = document.querySelector(`tr[data-ticket-id="${selectedTicket}"]`);
+      if (!row) return;
+
+      const csrfToken = getCSRF();
       if (!csrfToken) {
         alert('Missing CSRF token');
         return;
       }
 
-      // Disable the button during the request
-      startButton.disabled = true;
-      startButton.innerHTML = '<i class="bi bi-play-fill"></i> Starting...';
+      globalStartBtn.disabled = true;
+      globalStartBtn.innerHTML = '<i class="bi bi-play-fill"></i> Starting...';
 
-      fetch(`/tickets/${ticketId}/start/`, {
+      fetch(`/tickets/${selectedTicket}/start/`, {
         method: 'POST',
         headers: {
           'X-CSRFToken': csrfToken,
@@ -65,7 +220,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       })
         .then(response => {
-          // Handle HTTP errors
           if (!response.ok) {
             return response.json().then(err => {
               throw new Error(err.error || `HTTP ${response.status}`);
@@ -76,59 +230,61 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(data => {
           console.log('Start response:', data);
 
-          // Update the display in the row
           const startDisplaySpan = row.querySelector('.activity-start-display');
           const statusBadge = row.querySelector('.activity-start-time');
-          const stopButton = row.querySelector('.stop-timer');
 
-          // Show the start date
           if (startDisplaySpan && data.activity_start) {
             startDisplaySpan.textContent = formatDateTime(data.activity_start);
             startDisplaySpan.classList.remove('text-muted');
           }
 
-          // Update the status badge
           if (statusBadge) {
             statusBadge.textContent = 'Running...';
             statusBadge.classList.remove('bg-info', 'bg-secondary', 'bg-warning');
             statusBadge.classList.add('bg-success');
-
           }
 
-          // Update the buttons
-          startButton.disabled = true;
-          startButton.innerHTML = '<i class="bi bi-play-fill"></i> Running';
-
-          if (stopButton) {
-            stopButton.disabled = false;
+          // Update row data and stop the waiting timer
+          if (row) {
+            row.dataset.activityStart = data.activity_start;
+            try { stopTimeToStartForRow(row, data.activity_start); } catch (e) { /* ignore */ }
           }
 
+          globalStartBtn.innerHTML = '<i class="bi bi-play-fill"></i> Start';
+          updateControlButtons();
           alert('Timer started!');
         })
         .catch(error => {
           console.error('Error:', error);
           alert('Error: ' + error.message);
-
-          // Re-enable the button in case of error
-          startButton.disabled = false;
-          startButton.innerHTML = '<i class="bi bi-play-fill"></i> Start';
+          globalStartBtn.disabled = false;
+          globalStartBtn.innerHTML = '<i class="bi bi-play-fill"></i> Start';
         });
-      return; // Prevents handling both start and stop on the same click
-    }
+    });
+  }
 
-    // STOP BUTTON
-    const stopButton = e.target.closest('.stop-timer');
-    if (stopButton) {
-      console.log('Stop button clicked');
-      const row = stopButton.closest('tr');
-      const ticketId = row.querySelector('td:first-child').textContent.trim();
+  // Global Stop Button
+  const globalStopBtn = $('#globalStopBtn');
+  if (globalStopBtn) {
+    globalStopBtn.addEventListener('click', function() {
+      if (!selectedTicket) {
+        alert('Please select a ticket first');
+        return;
+      }
+
+      const row = document.querySelector(`tr[data-ticket-id="${selectedTicket}"]`);
+      if (!row) return;
+
       const csrfToken = getCSRF();
+      if (!csrfToken) {
+        alert('Missing CSRF token');
+        return;
+      }
 
-      // Disable the button during the request
-      stopButton.disabled = true;
-      stopButton.innerHTML = '<i class="bi bi-stop-fill"></i> Stopping...';
+      globalStopBtn.disabled = true;
+      globalStopBtn.innerHTML = '<i class="bi bi-stop-fill"></i> Stopping...';
 
-      fetch(`/tickets/${ticketId}/stop/`, {
+      fetch(`/tickets/${selectedTicket}/stop/`, {
         method: 'POST',
         headers: {
           'X-CSRFToken': csrfToken,
@@ -149,71 +305,48 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(data => {
           console.log('Stop response:', data);
 
-          // Update the display in the row
-          console.log('🧩 DEBUG row:', row);
-          console.log('🧩 row HTML:', row.outerHTML);
-          console.log('🧩 has badge:', row.querySelector('.activity-start-time'));
-
           const startDisplaySpan = row.querySelector('.activity-start-display');
-
           const endDisplaySpan = row.querySelector('.activity-end-time');
-
           const statusBadge = row.querySelector('.activity-start-time');
-          const startButton = row.querySelector('.start-timer');
           const timeSpentSpan = row.querySelector('.time-spent-display');
 
-          // Reset the start display (since it's reset server-side)
-          // Keep the start date visible when stopping
           if (startDisplaySpan && data.activity_start) {
             startDisplaySpan.textContent = formatDateTime(data.activity_start);
             startDisplaySpan.classList.remove('text-muted');
           }
 
-
-          // Show the end date
           if (endDisplaySpan && data.activity_end) {
             endDisplaySpan.textContent = formatDateTime(data.activity_end);
             endDisplaySpan.classList.remove('text-muted');
           }
 
-          // ✅ Update the status badge (corrigé)
           if (statusBadge) {
             statusBadge.textContent = 'Finished';
             statusBadge.classList.remove('bg-success', 'bg-info', 'bg-warning');
             statusBadge.classList.add('bg-secondary');
-
-          } else {
-            console.warn('⚠️ statusBadge not found for this row:', row.outerHTML);
           }
 
-          // Update the time spent in the last column
           if (timeSpentSpan && data.time_spent !== undefined) {
             timeSpentSpan.innerHTML = data.time_spent + ' h';
           } else if (timeSpentSpan) {
             timeSpentSpan.innerHTML = '0.00 h';
           }
 
-          // Update the buttons
-          stopButton.disabled = true;
-          stopButton.innerHTML = '<i class="bi bi-stop-fill"></i> Stop';
-
-          if (startButton) {
-            startButton.disabled = false;
-            startButton.innerHTML = '<i class="bi bi-play-fill"></i> Start';
-          }
-
+          globalStopBtn.innerHTML = '<i class="bi bi-stop-fill"></i> Stop';
+          updateControlButtons();
           alert('Timer stopped! Time spent: ' + (data.time_spent || 0) + ' hours');
         })
         .catch(error => {
           console.error('Error:', error);
           alert('Error: ' + error.message);
-
-          // Re-enable the button in case of error
-          stopButton.disabled = false;
-          stopButton.innerHTML = '<i class="bi bi-stop-fill"></i> Stop';
+          globalStopBtn.disabled = false;
+          globalStopBtn.innerHTML = '<i class="bi bi-stop-fill"></i> Stop';
         });
-    }
-  });
+    });
+  }
+
+  // Initialize button states
+  updateControlButtons();
 
   // 3) SEARCH BAR - Smart ticket filtering
   const searchInput = document.querySelector('input[name="q"]');
@@ -229,14 +362,14 @@ document.addEventListener("DOMContentLoaded", () => {
       let visibleCount = 0;
 
       rows.forEach(row => {
-        const ticketId = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
-        const customer = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-        const reportedUser = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
-        const reportedBy = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
-        const activityType = row.querySelector('td:nth-child(7)').textContent.toLowerCase();
-        const activityTitle = row.querySelector('td:nth-child(12)').textContent.toLowerCase();
-        const currentState = row.querySelector('td:nth-child(11)').textContent.toLowerCase();
-        const analyst = row.querySelector('td:nth-child(9)').textContent.toLowerCase();
+        const ticketId = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+        const customer = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+        const reportedUser = row.querySelector('td:nth-child(5)').textContent.toLowerCase();
+        const reportedBy = row.querySelector('td:nth-child(6)').textContent.toLowerCase();
+        const activityType = row.querySelector('td:nth-child(8)').textContent.toLowerCase();
+        const activityTitle = row.querySelector('td:nth-child(13)').textContent.toLowerCase();
+        const currentState = row.querySelector('td:nth-child(12)').textContent.toLowerCase();
+        const analyst = row.querySelector('td:nth-child(10)').textContent.toLowerCase();
 
         const matches = ticketId.includes(searchTerm) ||
           customer.includes(searchTerm) ||
@@ -255,7 +388,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
 
-      // Show a message if no result
       const tbody = document.querySelector('tbody');
       let noResultMsg = document.getElementById('no-result-message');
 

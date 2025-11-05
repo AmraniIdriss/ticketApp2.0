@@ -13,31 +13,29 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
-<header>
-    <nav class="navbar navbar-expand-lg navbar-light px-4 fixed-top">
-        <a class="navbar-brand navbar-brand-theme" href="/" >Tickets Dashboard</a>
-
-         <!-- Barre de recherche -->
-    <form class="d-flex ms-3" role="search" method="GET" action="{% url 'view_tickets' %}">
-      <input class="form-control form-control-sm me-2" 
-             type="search" 
-             placeholder="Looking for..." 
-             aria-label="Search" 
-             name="q">
-    </form>
-        <div class="ms-auto">
-            <form method="POST" action="{% url 'logout' %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
-            </form>
-        </div>
-    </nav>
-</header>
-
 <body>
-    <!-- Navbar -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light px-4 fixed-top">
+            <a class="navbar-brand navbar-brand-theme" href="/">Tickets Dashboard</a>
 
-     <!-- ADICIONE O BLOCO DE MENSAGENS AQUI -->
+            <!-- Barre de recherche -->
+            <form class="d-flex ms-3" role="search" method="GET" action="{% url 'view_tickets' %}">
+                <input class="form-control form-control-sm me-2" 
+                       type="search" 
+                       placeholder="Looking for..." 
+                       aria-label="Search" 
+                       name="q">
+            </form>
+            <div class="ms-auto">
+                <form method="POST" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+                </form>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Messages -->
     <div class="container-fluid mt-5 pt-4">
         {% if messages %}
             {% for message in messages %}
@@ -48,8 +46,16 @@
             {% endfor %}
         {% endif %}
     </div>
-    <!-- FIM DO BLOCO DE MENSAGENS -->
-    
+
+    <!-- Centralized Timer Controls -->
+    <div class="timer-controls-fixed">
+        <button type="button" class="btn btn-success" id="globalStartBtn" disabled>
+            <i class="bi bi-play-fill"></i> Start Timer
+        </button>
+        <button type="button" class="btn btn-danger" id="globalStopBtn" disabled>
+            <i class="bi bi-stop-fill"></i> Stop Timer
+        </button>
+    </div>
 
     <!-- Table container -->
     <div class="container-fluid mt-4">
@@ -57,30 +63,50 @@
             <table class="table table-striped table-hover table-bordered align-middle">
                 <thead class="table-dark">
                     <tr>
-                        <th style="min-width: 80px;">Ticket ID</th>
-                        <th style="min-width: 120px;">Sysdate</th>
-                        <th style="min-width: 150px;">Customer</th>
-                        <th style="min-width: 150px;">Reported User</th>
-                        <th style="min-width: 150px;">Reported By</th>
-                        <th style="min-width: 180px;">Related Tickets Id</th>
-                        <th style="min-width: 150px;">Activity Type</th>
-                        <th style="min-width: 180px;">Activity Importance</th>
-                        <th style="min-width: 150px;">Analyst Consultant</th>
-                        <th style="min-width: 150px;">Activity Type 2</th>
-                        <th style="min-width: 150px;">Current State</th>
-                        <th style="min-width: 200px;">Activity Title</th>
-                        <th style="min-width: 120px;">Activity Start</th>
-                        <th style="min-width: 120px;">Activity End</th>
-                        <th style="min-width: 250px;">Activity Resolution Description</th>
-                        <th style="min-width: 120px;">Billing</th>
-                        <th style="min-width: 120px;">Time Spent</th>
+                        <th>Select</th>
+                        <th>Ticket ID</th>
+                        <th>Sysdate</th>
+                        <th>Customer</th>
+                        <th>Reported User</th>
+                        <th>Reported By</th>
+                        <th>Related Tickets Id</th>
+                        <th>Activity Type</th>
+                        <th>Activity Importance</th>
+                        <th>Analyst Consultant</th>
+                        <th>Activity Type 2</th>
+                        <th>Current State</th>
+                        <th>Activity Title</th>
+                        <th>Activity Start</th>
+                        <th>Activity End</th>
+                        <th>Activity Resolution Description</th>
+                        <th>Billing</th>
+                        <th>Time Spent</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for t in tickets %}
-                    <tr data-ticket-id="{{ t.ticket_id }}">
-                        <td>{{ t.ticket_id }}</td>
-                        <td>{{ t.sysdate|date:"n.j.Y H:i"|default:"-" }}</td>
+                    <tr data-ticket-id="{{ t.ticket_id }}" data-created="{{ t.sysdate|date:'c' }}" data-activity-start="{% if t.activity_start %}{{ t.activity_start|date:'c' }}{% endif %}">
+                        <td>
+                            <div class="form-check d-flex justify-content-center">
+                                <input class="form-check-input ticket-select" type="checkbox" value="{{ t.ticket_id }}">
+                            </div>
+                        </td>
+                            <td>{{ t.ticket_id }}</td>
+                            <td>
+                                <div>
+                                    <span class="sysdate-display">{{ t.sysdate|date:"n.j.Y H:i"|default:"-" }}</span>
+                                    <br>
+                                    <small class="text-muted time-to-start-display">
+                                        {% if t.activity_start %}
+                                            {% comment %}If activity already started, show elapsed from create to start{% endcomment %}
+                                            {{ t.activity_start|timesince:t.sysdate }}
+                                        {% else %}
+                                            {% comment %}Placeholder; JS will start live timer if not started{% endcomment %}
+                                            -
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </td>
                         <td>{{ t.customer.name|default:"-" }}</td>
                         <td>{{ t.reported_user|default:"-" }}</td>
                         <td>{{ t.reported_by.name|default:"-" }}</td>
@@ -92,18 +118,18 @@
                         <td>{{ t.current_state.name|default:"-" }}</td>
                         <td>{{ t.activity_title|default:"-" }}</td>
                         
-                        <!-- Activity Start with timer -->
+                        <!-- Activity Start (display only) -->
                         <td>
-                            <div class="timer-display mb-2">
+                            <div class="timer-display">
                                 {% if t.activity_start %}
-                                    <small class="text-muted">Started:</small><br>
+                                    <small>Started:</small>
                                     <span class="activity-start-display">{{ t.activity_start|date:"d.m.Y H:i:s" }}</span>
                                 {% else %}
                                     <span class="activity-start-display text-muted">Not started</span>
                                 {% endif %}
                             </div>
                             
-                            <div class="timer-counter mb-2">
+                            <div class="timer-counter">
                                 <span class="activity-start-time badge bg-info">
                                     {% if t.activity_start and not t.activity_end %}
                                         Running...
@@ -114,25 +140,13 @@
                                     {% endif %}
                                 </span>
                             </div>
-                            
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-sm btn-success start-timer"
-                                    {% if t.activity_start and not t.activity_end %}disabled{% endif %}>
-                                    <i class="bi bi-play-fill"></i> 
-                                    {% if t.activity_start and not t.activity_end %}Running{% else %}Start{% endif %}
-                                </button>
-                                <button type="button" class="btn btn-sm btn-danger stop-timer"
-                                    {% if not t.activity_start or t.activity_end %}disabled{% endif %}>
-                                    <i class="bi bi-stop-fill"></i> Stop
-                                </button>
-                            </div>
                         </td>
                         
-                        <!-- Activity End -->
+                        <!-- Activity End (display only) -->
                         <td>
                             <div class="timer-end-display">
                                 {% if t.activity_end %}
-                                    <small class="text-muted">Ended:</small><br>
+                                    <small>Ended:</small>
                                     <span class="activity-end-time">{{ t.activity_end|date:"d.m.Y H:i:s" }}</span>
                                 {% else %}
                                     <span class="activity-end-time text-muted">Not finished</span>
@@ -141,19 +155,20 @@
                         </td>
                         
                         <td>
-                            <span>{{ t.activity_resolution_description|default:"-" }}</span>
-                            <p></p>
-                            <button type="button" class="btn btn-sm btn-info ms-2 show-description-btn"
+                            <div class="mb-2">
+                                {{ t.activity_resolution_description|truncatewords:10|default:"-" }}
+                            </div>
+                            <button type="button" class="btn btn-sm btn-info show-description-btn"
                                 data-description="{{ t.activity_resolution_description|default:"-" }}">
                                 <i class="bi bi-eye"></i> View
                             </button>
-                            <a href="{% url 'edit_ticket' t.ticket_id %}" class="btn btn-sm btn-outline-primary ms-2">
+                            <a href="{% url 'edit_ticket' t.ticket_id %}" class="btn btn-sm btn-outline-primary ms-1">
                                 <i class="bi bi-pencil-square"></i> Edit
                             </a>
                         </td>
                         <td>{{ t.billing|default:"-" }}</td>
                         
-                        <!-- Time Spent (nouvelle colonne) -->
+                        <!-- Time Spent -->
                         <td>
                             <span class="time-spent-display">
                                 {% if t.time_spent %}
@@ -172,17 +187,17 @@
 
     <!-- Modal for Activity Resolution Description -->
     <div class="modal fade" id="descriptionModal" tabindex="-1" aria-labelledby="descriptionModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="descriptionModalLabel">Activity Resolution Description</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body" id="descriptionModalBody">
-            <!-- Description will be injected here -->
-          </div>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="descriptionModalLabel">Activity Resolution Description</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="descriptionModalBody">
+                    <!-- Description will be injected here -->
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
     <!-- Bootstrap JS Bundle -->
