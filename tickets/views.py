@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 import json
 from django.utils.timezone import now
+from django.contrib.auth.decorators import login_required
 
 from .models import (
     TicketsActivityticket, TicketsCustomer, TicketsReportedby,
@@ -84,6 +85,42 @@ def create_ticket(request):
 def view_tickets(request):
     tickets = TicketsActivityticket.objects.all().order_by('ticket_id')
     return render(request, "tickets/view_tickets.html", {"tickets": tickets})
+
+
+# -----------------------
+# Ticket detail (history chain)
+# -----------------------
+def ticket_detail(request, ticket_id):
+    """
+    Display ticket history chain using the same structure as view_tickets.
+    Reuses the exact same template and JavaScript.
+    """
+    ticket = get_object_or_404(TicketsActivityticket, ticket_id=ticket_id)
+    
+    # Build history chain by following related_ticket backwards
+    history_chain = []
+    current = ticket
+    visited_ids = set()
+    
+    # Walk backwards to find root
+    while current and current.ticket_id not in visited_ids:
+        visited_ids.add(current.ticket_id)
+        history_chain.append(current)
+        
+        if current.related_ticket and current.related_ticket.ticket_id != current.ticket_id:
+            current = current.related_ticket
+        else:
+            break
+    
+    # Reverse to show oldest first (chronological order)
+    history_chain.reverse()
+    
+    # Reuse view_tickets template with filtered tickets
+    return render(request, "tickets/view_tickets.html", {
+        "tickets": history_chain,
+        "viewing_history": True,
+        "main_ticket": ticket,
+    })
 
 
 # -----------------------
@@ -273,6 +310,7 @@ def start_timer(request, ticket_id):
         return JsonResponse({"error": "Ticket not found"}, status=404)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
 # -----------------------
 # Timer : STOP
 # -----------------------
@@ -318,8 +356,6 @@ def stop_timer(request, ticket_id):
         else:
             ticket.time_spent = float(ticket.time_spent or 0)
 
-     
-
         ticket.save(update_fields=["activity_end", "activity_start", "current_state", "time_spent"])
 
         return JsonResponse({
@@ -335,5 +371,3 @@ def stop_timer(request, ticket_id):
     except Exception as e:
         print(f"ERROR in stop_timer: {e}")
         return JsonResponse({"error": str(e)}, status=500)
-
-

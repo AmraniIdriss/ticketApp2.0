@@ -17,3 +17,8 @@ dans view tickets
 Jour 2 : 
 
 Objectif realiste, mettre un timer pour tout les tickets
+
+update: c'est fait en 40min a peine 
+ 2eme objectif :  timer quand on creer le ticket
+ 
+ 3eme optionel 

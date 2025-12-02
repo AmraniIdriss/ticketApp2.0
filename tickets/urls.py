@@ -10,5 +10,6 @@ urlpatterns = [
     path("<int:ticket_id>/stop/", views.stop_timer, name="stop_timer"),
     path("<int:ticket_id>/start/", views.start_timer, name="start_timer"),
     path('create-ticket-email/<int:ticket_id>/', ticket_email_form, name='ticket_email_form'),
-    
+    path('ticket/<str:ticket_id>/', views.ticket_detail, name='ticket_detail'),
+    path('detail/<int:ticket_id>/', views.ticket_detail, name='ticket_detail'),
 ]

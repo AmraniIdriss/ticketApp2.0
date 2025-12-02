@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Tickets Dashboard</title>
@@ -13,6 +14,7 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
+
 <body>
     <header>
         <nav class="navbar navbar-expand-lg navbar-light px-4 fixed-top">
@@ -20,11 +22,8 @@
 
             <!-- Barre de recherche -->
             <form class="d-flex ms-3" role="search" method="GET" action="{% url 'view_tickets' %}">
-                <input class="form-control form-control-sm me-2" 
-                       type="search" 
-                       placeholder="Looking for..." 
-                       aria-label="Search" 
-                       name="q">
+                <input class="form-control form-control-sm me-2" type="search" placeholder="Looking for..."
+                    aria-label="Search" name="q">
             </form>
             <div class="ms-auto">
                 <form method="POST" action="{% url 'logout' %}">
@@ -38,12 +37,12 @@
     <!-- Messages -->
     <div class="container-fluid mt-5 pt-4">
         {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
         {% endif %}
     </div>
 
@@ -85,28 +84,30 @@
                 </thead>
                 <tbody>
                     {% for t in tickets %}
-                    <tr data-ticket-id="{{ t.ticket_id }}" data-created="{{ t.sysdate|date:'c' }}" data-activity-start="{% if t.activity_start %}{{ t.activity_start|date:'c' }}{% endif %}">
+                    <tr data-ticket-id="{{ t.ticket_id }}" data-created="{{ t.sysdate|date:'c' }}"
+                        data-activity-start="{% if t.activity_start %}{{ t.activity_start|date:'c' }}{% endif %}">
                         <td>
                             <div class="form-check d-flex justify-content-center">
                                 <input class="form-check-input ticket-select" type="checkbox" value="{{ t.ticket_id }}">
                             </div>
                         </td>
-                            <td>{{ t.ticket_id }}</td>
-                            <td>
-                                <div>
-                                    <span class="sysdate-display">{{ t.sysdate|date:"n.j.Y H:i"|default:"-" }}</span>
-                                    <br>
-                                    <small class="text-muted time-to-start-display">
-                                        {% if t.activity_start %}
-                                            {% comment %}If activity already started, show elapsed from create to start{% endcomment %}
-                                            {{ t.activity_start|timesince:t.sysdate }}
-                                        {% else %}
-                                            {% comment %}Placeholder; JS will start live timer if not started{% endcomment %}
-                                            -
-                                        {% endif %}
-                                    </small>
-                                </div>
-                            </td>
+                        <td>{{ t.ticket_id }}</td>
+                        <td>
+                            <div>
+                                <span class="sysdate-display">{{ t.sysdate|date:"n.j.Y H:i"|default:"-" }}</span>
+                                <br>
+                                <small class="text-muted time-to-start-display">
+                                    {% if t.activity_start %}
+                                    {% comment %}If activity already started, show elapsed from create to start{%
+                                    endcomment %}
+                                    {{ t.activity_start|timesince:t.sysdate }}
+                                    {% else %}
+                                    {% comment %}Placeholder; JS will start live timer if not started{% endcomment %}
+                                    -
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </td>
                         <td>{{ t.customer.name|default:"-" }}</td>
                         <td>{{ t.reported_user|default:"-" }}</td>
                         <td>{{ t.reported_by.name|default:"-" }}</td>
@@ -117,64 +118,63 @@
                         <td>{{ t.activity_type_2.name|default:"-" }}</td>
                         <td>{{ t.current_state.name|default:"-" }}</td>
                         <td>{{ t.activity_title|default:"-" }}</td>
-                        
+
                         <!-- Activity Start (display only) -->
                         <td>
                             <div class="timer-display">
                                 {% if t.activity_start %}
-                                    <small>Started:</small>
-                                    <span class="activity-start-display">{{ t.activity_start|date:"d.m.Y H:i:s" }}</span>
+                                <small>Started:</small>
+                                <span class="activity-start-display">{{ t.activity_start|date:"d.m.Y H:i:s" }}</span>
                                 {% else %}
-                                    <span class="activity-start-display text-muted">Not started</span>
+                                <span class="activity-start-display text-muted">Not started</span>
                                 {% endif %}
                             </div>
-                            
+
                             <div class="timer-counter">
                                 <span class="activity-start-time badge bg-info">
                                     {% if t.activity_start and not t.activity_end %}
-                                        Running...
+                                    Running...
                                     {% elif t.activity_start and t.activity_end %}
-                                        Finished
+                                    Finished
                                     {% else %}
-                                        Ready to start
+                                    Ready to start
                                     {% endif %}
                                 </span>
                             </div>
                         </td>
-                        
+
                         <!-- Activity End (display only) -->
                         <td>
                             <div class="timer-end-display">
                                 {% if t.activity_end %}
-                                    <small>Ended:</small>
-                                    <span class="activity-end-time">{{ t.activity_end|date:"d.m.Y H:i:s" }}</span>
+                                <small>Ended:</small>
+                                <span class="activity-end-time">{{ t.activity_end|date:"d.m.Y H:i:s" }}</span>
                                 {% else %}
-                                    <span class="activity-end-time text-muted">Not finished</span>
+                                <span class="activity-end-time text-muted">Not finished</span>
                                 {% endif %}
                             </div>
                         </td>
-                        
+
                         <td>
                             <div class="mb-2">
                                 {{ t.activity_resolution_description|truncatewords:10|default:"-" }}
                             </div>
-                            <button type="button" class="btn btn-sm btn-info show-description-btn"
-                                data-description="{{ t.activity_resolution_description|default:"-" }}">
+                            <a href="{% url 'ticket_detail' t.ticket_id %}" class="btn btn-sm btn-outline-info">
                                 <i class="bi bi-eye"></i> View
-                            </button>
+                            </a>
                             <a href="{% url 'edit_ticket' t.ticket_id %}" class="btn btn-sm btn-outline-primary ms-1">
                                 <i class="bi bi-pencil-square"></i> Edit
                             </a>
                         </td>
                         <td>{{ t.billing|default:"-" }}</td>
-                        
+
                         <!-- Time Spent -->
                         <td>
                             <span class="time-spent-display">
                                 {% if t.time_spent %}
-                                    {{ t.time_spent }} h
+                                {{ t.time_spent }} h
                                 {% else %}
-                                    -
+                                -
                                 {% endif %}
                             </span>
                         </td>
@@ -186,7 +186,8 @@
     </div>
 
     <!-- Modal for Activity Resolution Description -->
-    <div class="modal fade" id="descriptionModal" tabindex="-1" aria-labelledby="descriptionModalLabel" aria-hidden="true">
+    <div class="modal fade" id="descriptionModal" tabindex="-1" aria-labelledby="descriptionModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -205,4 +206,5 @@
     <!-- Custom JS -->
     <script src="../../static/js/view_tickets.js"></script>
 </body>
+
 </html>

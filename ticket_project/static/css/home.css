@@ -1,4 +1,4 @@
-/* home.css - Version simple avec variables de thème */
+/* home.css - Version avec système de filtrage */
 
 html, body {
     height: 100%;
@@ -9,11 +9,12 @@ html, body {
 }
 
 .sidebar {
-    width: 220px;
+    width: 250px;
     min-height: 100vh;
     background-color: var(--card);
     color: var(--fg);
     border-right: 1px solid var(--border);
+    overflow-y: auto;
 }
 
 .sidebar h2,
@@ -26,21 +27,124 @@ html, body {
     min-height: 100vh;
     background: var(--bg);
     color: var(--fg);
+    padding: 20px;
+    overflow-y: auto;
 }
 
+/* Filter Panel */
+.filter-panel {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 15px 20px;
+    margin-bottom: 25px;
+    box-shadow: var(--shadow-med);
+}
+
+.filter-panel h4 {
+    margin: 0 0 15px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: background 0.2s;
+  cursor: pointer;
+}
+
+.filter-option:hover {
+    background: var(--row-alt);
+}
+
+.filter-option input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.filter-option label {
+    cursor: pointer;
+    user-select: none;
+    margin: 0;
+    font-size: 0.9rem;
+    flex: 1;
+}
+
+.filter-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Ticket Sections */
+.ticket-section {
+    margin-bottom: 35px;
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.ticket-section.hidden {
+    display: none;
+}
+
+.ticket-section h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ticket-section h3 strong {
+    color: var(--primary);
+    background: rgba(var(--primary-rgb), 0.1);
+    padding: 2px 10px;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+/* Tables */
 .content .table {
     background: var(--card);
     color: var(--fg);
     border-color: var(--border);
+    font-size: 0.9rem;
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .content .table th {
     background: var(--thead-bg);
     color: var(--thead-fg);
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 12px 10px;
 }
 
 .content .table td {
     border-color: var(--border) !important;
+    padding: 10px;
 }
 
 .content .table-striped > tbody > tr:nth-of-type(odd) > * {
@@ -51,13 +155,50 @@ html, body {
     background-color: var(--row-bg) !important;
 }
 
+.content .table-hover tbody tr:hover {
+    background: var(--row-alt) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* Color coding for ticket states */
+.text-secondary { color: #6c757d !important; }
+.text-info { color: #17a2b8 !important; }
+.text-danger { color: #dc3545 !important; }
+.text-success { color: #28a745 !important; }
+.text-primary { color: #007bff !important; }
+.text-warning { color: #ffc107 !important; }
+
 /* Responsive */
+@media (max-width: 992px) {
+    .filter-options {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+}
+
 @media (max-width: 768px) {
     .sidebar {
         min-height: auto;
         width: 100%;
     }
+    
     .content {
         padding: 10px;
+    }
+    
+    .filter-panel {
+        padding: 12px 15px;
+    }
+    
+    .filter-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .ticket-section h3 {
+        font-size: 1.1rem;
+        flex-wrap: wrap;
+    }
+    
+    .content .table {
+        font-size: 0.8rem;
     }
 }

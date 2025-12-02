@@ -411,5 +411,74 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("[Search] Search bar initialized");
   }
 
+  // =========================================
+  // 4) AUTO-SELECT TICKET FROM URL PARAMETER
+  // =========================================
+  const urlParams = new URLSearchParams(window.location.search);
+  const ticketIdFromUrl = urlParams.get('ticket');
+
+  if (ticketIdFromUrl) {
+    console.log(`[view_tickets] Auto-selecting ticket #${ticketIdFromUrl} from URL`);
+    
+    // Wait a bit to ensure all DOM is ready
+    setTimeout(() => {
+      // Find the row with this ticket ID
+      const allRows = document.querySelectorAll('tbody tr[data-ticket-id]');
+      let targetRow = null;
+      
+      for (const row of allRows) {
+        const ticketCell = row.querySelector('td:nth-child(2)'); // Ticket ID is in 2nd column
+        if (ticketCell && ticketCell.textContent.trim() === ticketIdFromUrl) {
+          targetRow = row;
+          break;
+        }
+      }
+      
+      if (targetRow) {
+        // Select the checkbox using the existing function
+        const checkbox = targetRow.querySelector('.ticket-select');
+        if (checkbox) {
+          updateRowSelection(checkbox, true);
+          
+          // Scroll to the selected row smoothly
+          setTimeout(() => {
+            targetRow.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+            
+            // Add a brief highlight animation
+            const originalBg = targetRow.style.backgroundColor;
+            targetRow.style.transition = 'background-color 0.8s ease';
+            targetRow.style.backgroundColor = 'rgba(13, 110, 253, 0.3)';
+            
+            setTimeout(() => {
+              targetRow.style.backgroundColor = originalBg;
+              setTimeout(() => {
+                targetRow.style.transition = '';
+              }, 800);
+            }, 1200);
+          }, 100);
+          
+          console.log(`[view_tickets] ✓ Ticket #${ticketIdFromUrl} selected and highlighted`);
+        }
+      } else {
+        console.warn(`[view_tickets] ✗ Ticket #${ticketIdFromUrl} not found`);
+        
+        // Show alert to user
+        setTimeout(() => {
+          alert(`Ticket #${ticketIdFromUrl} was not found in the current view.`);
+        }, 500);
+      }
+      
+      // Clean the URL (remove the parameter)
+      if (window.history.replaceState) {
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+    }, 200);
+  }
+
   console.log("[Timer] Timer successfully initialized");
+  console.log("[view_tickets] URL parameter handler initialized");
 });
