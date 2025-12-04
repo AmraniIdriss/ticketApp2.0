@@ -1,27 +1,17 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - Tickets Dashboard</title>
-
-    <!-- IMPORTANT : Charger le script de settings AVANT tout CSS -->
+    <title>Home Dashboard</title>
     <script src="{% static 'js/app_settings_boot.js' %}"></script>
-    <!-- Home Navigation Script -->
-<script src="{% static 'js/home.js' %}"></script>
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Custom CSS - DANS CET ORDRE -->
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
-
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
-
 <body>
     <div class="d-flex min-vh-100">
         <!-- Sidebar -->
@@ -29,384 +19,191 @@
             <h2 class="text-center mb-4">TicketApp</h2>
             <ul class="nav flex-column">
                 <li class="nav-item mb-2">
-                    <a class="nav-link d-flex align-items-center" data-bs-toggle="collapse" href="#ticketsSubmenu"
-                        role="button" aria-expanded="false" aria-controls="ticketsSubmenu">
+                    <a class="nav-link" data-bs-toggle="collapse" href="#ticketsSubmenu">
                         <i class="bi bi-ticket-detailed me-2"></i>Tickets
                         <i class="bi bi-caret-down ms-auto"></i>
                     </a>
                     <div class="collapse ps-3" id="ticketsSubmenu">
-                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                            <li>
-                                <a href="{% url 'view_tickets' %}" class="nav-link">
-                                    <i class="bi bi-list-ul me-2"></i>View Tickets
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{% url 'create_ticket' %}" class="nav-link">
-                                    <i class="bi bi-plus-circle me-2"></i>Create Ticket
-                                </a>
-                            </li>
+                        <ul class="list-unstyled">
+                            <li><a href="{% url 'view_tickets' %}" class="nav-link"><i class="bi bi-list-ul me-2"></i>View Tickets</a></li>
+                            <li><a href="{% url 'create_ticket' %}" class="nav-link"><i class="bi bi-plus-circle me-2"></i>Create Ticket</a></li>
                         </ul>
                     </div>
                 </li>
-                <li class="nav-item mb-2">
-                    <a href="{% url 'home_reports' %}" class="nav-link">
-                        <i class="bi bi-bar-chart me-2"></i>Reports
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="{% url 'settings:index' %}" class="nav-link">
-                        <i class="bi bi-gear me-2"></i>Settings
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="/admin/" class="nav-link">
-                        <i class="bi bi-shield-lock me-2"></i>Admin Panel
-                    </a>
-                </li>
+                <li class="nav-item mb-2"><a href="{% url 'home_reports' %}" class="nav-link"><i class="bi bi-bar-chart me-2"></i>Reports</a></li>
+                <li class="nav-item mb-2"><a href="{% url 'settings:index' %}" class="nav-link"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                <li class="nav-item mb-2"><a href="/admin/" class="nav-link"><i class="bi bi-shield-lock me-2"></i>Admin</a></li>
                 <li class="nav-item mt-3">
-                    <form method="POST" action="{% url 'logout' %}" class="d-flex">
+                    <form method="POST" action="{% url 'logout' %}">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center">
+                        <button type="submit" class="btn btn-outline-danger w-100">
                             <i class="bi bi-box-arrow-right me-2"></i> Logout
                         </button>
                     </form>
-                </li>    
+                </li>
             </ul>
         </nav>
 
-        <!-- Main content -->
-        <div class="content">
+        <!-- Main Content -->
+        <div class="content flex-fill p-4">
             <h1 class="mb-4">Welcome, {{ request.user.username }}!</h1>
 
-            <!-- Filter Panel -->
-            <div class="filter-panel">
-                <h4>
-                    <i class="bi bi-funnel"></i>
-                    Filter Ticket Sections
-                </h4>
-                <div class="filter-options">
-                    <div class="filter-option">
-                        <input type="checkbox" id="filter-open" checked>
-                        <label for="filter-open">Open Tickets <span class="filter-badge bg-secondary">{{ open_count }}</span></label>
+            <!-- FILTRES GRAPHIQUES -->
+            <div class="filter-card mb-4">
+                <h4><i class="bi bi-funnel-fill me-2"></i>Analytics Filters</h4>
+                <form id="filterForm" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date">
                     </div>
-                    <div class="filter-option">
-                        <input type="checkbox" id="filter-scheduled" checked>
-                        <label for="filter-scheduled">Scheduled <span class="filter-badge bg-info">{{ scheduled_count }}</span></label>
+                    <div class="col-md-3">
+                        <label class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date">
                     </div>
-                    <div class="filter-option">
-                        <input type="checkbox" id="filter-reopened" checked>
-                        <label for="filter-reopened">Re-Opened <span class="filter-badge bg-danger">{{ re_opened_count }}</span></label>
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            Analysts <small class="text-muted">(Ctrl+Click)</small>
+                            <button type="button" class="btn btn-sm btn-link p-0 ms-2" id="selectAllAnalysts">Select All</button>
+                        </label>
+                        <select class="form-select" id="analysts" name="analysts" multiple size="5">
+                            {% for analyst in analysts %}
+                            <option value="{{ analyst.name }}">{{ analyst.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <div class="filter-option">
-                        <input type="checkbox" id="filter-inprogress" checked>
-                        <label for="filter-inprogress">In Progress <span class="filter-badge bg-info">{{ inprogress_ongoing_count }}</span></label>
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            States <small class="text-muted">(Ctrl+Click)</small>
+                            <button type="button" class="btn btn-sm btn-link p-0 ms-2" id="selectAllStates">Select All</button>
+                        </label>
+                        <select class="form-select" id="states" name="states" multiple size="5">
+                            {% for state in states %}
+                            <option value="{{ state.name }}">{{ state.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <div class="filter-option">
-                        <input type="checkbox" id="filter-pending-customer" checked>
-                        <label for="filter-pending-customer">Pending Customer <span class="filter-badge bg-secondary">{{ pending_customer_count }}</span></label>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-search me-2"></i>Apply Filters</button>
+                        <button type="button" class="btn btn-secondary" id="resetBtn"><i class="bi bi-arrow-clockwise me-2"></i>Reset</button>
+                        <span class="ms-3 text-muted" id="filterSummary"></span>
                     </div>
-                    <div class="filter-option">
-                        <input type="checkbox" id="filter-pending-3rd" checked>
-                        <label for="filter-pending-3rd">Pending 3rd Party <span class="filter-badge bg-success">{{ pending_3rd_party_count }}</span></label>
-                    </div>
-                    <div class="filter-option">
-                        <input type="checkbox" id="filter-pending-analysis" checked>
-                        <label for="filter-pending-analysis">Pending Analysis <span class="filter-badge bg-primary">{{ pending_analysis_count }}</span></label>
-                    </div>
-                    <div class="filter-option">
-                        <input type="checkbox" id="filter-incomplete" checked>
-                        <label for="filter-incomplete">Incomplete <span class="filter-badge bg-warning">{{ incomplete_pending_count }}</span></label>
-                    </div>
+                </form>
+            </div>
+
+            <!-- KPI CARDS -->
+            <div class="row mb-4">
+                <div class="col-md-3"><div class="kpi-card"><div class="kpi-icon bg-primary"><i class="bi bi-ticket-detailed"></i></div><div class="kpi-content"><p class="kpi-label">Total Tickets</p><h3 class="kpi-value" id="kpi-total">{{ total_tickets }}</h3></div></div></div>
+                <div class="col-md-3"><div class="kpi-card"><div class="kpi-icon bg-success"><i class="bi bi-clock-history"></i></div><div class="kpi-content"><p class="kpi-label">Avg Time</p><h3 class="kpi-value" id="kpi-avg">{{ avg_resolution_time }}h</h3></div></div></div>
+                <div class="col-md-3"><div class="kpi-card"><div class="kpi-icon bg-warning"><i class="bi bi-hourglass-split"></i></div><div class="kpi-content"><p class="kpi-label">Total Time</p><h3 class="kpi-value" id="kpi-total-time">{{ total_time_spent }}h</h3></div></div></div>
+                <div class="col-md-3"><div class="kpi-card"><div class="kpi-icon bg-danger"><i class="bi bi-exclamation-circle"></i></div><div class="kpi-content"><p class="kpi-label">Open Tickets</p><h3 class="kpi-value" id="kpi-open">{{ open_tickets_kpi }}</h3></div></div></div>
+            </div>
+
+            <!-- CHARTS -->
+            <div class="charts-section mb-5">
+                <h2 class="mb-4"><i class="bi bi-graph-up"></i> Analytics Overview</h2>
+                <div class="row">
+                    <div class="col-md-6 mb-4"><div class="chart-card"><h5 class="chart-title"><i class="bi bi-pie-chart"></i> Tickets by State</h5><div class="chart-body"><canvas id="chart1"></canvas></div></div></div>
+                    <div class="col-md-6 mb-4"><div class="chart-card"><h5 class="chart-title"><i class="bi bi-person-badge"></i> Top Analysts</h5><div class="chart-body"><canvas id="chart2"></canvas></div></div></div>
+                    <div class="col-md-6 mb-4"><div class="chart-card"><h5 class="chart-title"><i class="bi bi-clock-history"></i> Avg Time per Analyst</h5><div class="chart-body"><canvas id="chart3"></canvas></div></div></div>
+                    <div class="col-md-6 mb-4"><div class="chart-card"><h5 class="chart-title"><i class="bi bi-card-checklist"></i> Tickets by Activity</h5><div class="chart-body"><canvas id="chart4"></canvas></div></div></div>
+                    <div class="col-md-6 mb-4"><div class="chart-card"><h5 class="chart-title"><i class="bi bi-building"></i> Top Customers</h5><div class="chart-body"><canvas id="chart5"></canvas></div></div></div>
+                    <div class="col-md-6 mb-4"><div class="chart-card"><h5 class="chart-title"><i class="bi bi-hourglass-split"></i> Total Time per Analyst</h5><div class="chart-body"><canvas id="chart6"></canvas></div></div></div>
                 </div>
             </div>
 
-            <!-- Tickets Sections -->
-            <!-- Open Tickets -->
+            <!-- SEPARATEUR -->
+            <hr class="my-5">
+
+            <!-- FILTRES TABLES -->
+            <div class="filter-panel mb-4">
+                <h4><i class="bi bi-funnel"></i> Filter Ticket Sections</h4>
+                <div class="filter-options">
+                    <div class="filter-option"><input type="checkbox" id="filter-open" checked><label for="filter-open">Open Tickets <span class="filter-badge bg-secondary">{{ open_count }}</span></label></div>
+                    <div class="filter-option"><input type="checkbox" id="filter-scheduled" checked><label for="filter-scheduled">Scheduled <span class="filter-badge bg-info">{{ scheduled_count }}</span></label></div>
+                    <div class="filter-option"><input type="checkbox" id="filter-reopened" checked><label for="filter-reopened">Re-Opened <span class="filter-badge bg-danger">{{ re_opened_count }}</span></label></div>
+                    <div class="filter-option"><input type="checkbox" id="filter-inprogress" checked><label for="filter-inprogress">In Progress <span class="filter-badge bg-info">{{ inprogress_ongoing_count }}</span></label></div>
+                    <div class="filter-option"><input type="checkbox" id="filter-pending-customer" checked><label for="filter-pending-customer">Pending Customer <span class="filter-badge bg-secondary">{{ pending_customer_count }}</span></label></div>
+                    <div class="filter-option"><input type="checkbox" id="filter-pending-3rd" checked><label for="filter-pending-3rd">Pending 3rd Party <span class="filter-badge bg-success">{{ pending_3rd_party_count }}</span></label></div>
+                    <div class="filter-option"><input type="checkbox" id="filter-pending-analysis" checked><label for="filter-pending-analysis">Pending Analysis <span class="filter-badge bg-primary">{{ pending_analysis_count }}</span></label></div>
+                    <div class="filter-option"><input type="checkbox" id="filter-incomplete" checked><label for="filter-incomplete">Incomplete <span class="filter-badge bg-warning">{{ incomplete_pending_count }}</span></label></div>
+                </div>
+            </div>
+
+            <!-- TABLES DE TICKETS -->
             <div class="ticket-section" data-section="open">
                 <h3>Open Tickets <strong>{{ open_count }}</strong></h3>
-                <table class="table table-striped table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th>Analyst</th>
-                            <th>Activity Importance</th>
-                            <th>Ticket ID</th>
-                            <th>Sysdate</th>
-                            <th>Time Spent</th>
-                            <th>Related Tickets</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in tickets_by_analyst_consultant_open %}
-                        <tr>
-                            <td class="text-secondary">{{ item.analyst_consultant__name }}</td>
-                            <td class="text-secondary">{{ item.activity_importance }}</td>
-                            <td class="text-secondary">{{ item.ticket_id }}</td>
-                            <td class="text-secondary">{{ item.sysdate }}</td>
-                            <td class="text-secondary">{{ item.time_spent }}</td>
-                            <td class="text-secondary">{{ item.related_tickets }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="6" class="text-center text-muted">No open tickets</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <table class="table table-striped table-bordered table-hover"><thead><tr><th>Analyst</th><th>Activity Importance</th><th>Ticket ID</th><th>Sysdate</th><th>Time Spent</th><th>Related Tickets</th></tr></thead><tbody>
+                    {% for item in tickets_by_analyst_consultant_open %}<tr><td class="text-secondary">{{ item.analyst_consultant__name }}</td><td class="text-secondary">{{ item.activity_importance }}</td><td class="text-secondary">{{ item.ticket_id }}</td><td class="text-secondary">{{ item.sysdate }}</td><td class="text-secondary">{{ item.time_spent }}</td><td class="text-secondary">{{ item.related_tickets }}</td></tr>{% empty %}<tr><td colspan="6" class="text-center text-muted">No open tickets</td></tr>{% endfor %}
+                </tbody></table>
             </div>
 
-            <!-- Scheduled Tickets -->
             <div class="ticket-section" data-section="scheduled">
                 <h3>Scheduled Tickets <strong>{{ scheduled_count }}</strong></h3>
-                <table class="table table-striped table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th>Analyst</th>
-                            <th>Activity Importance</th>
-                            <th>Ticket ID</th>
-                            <th>Sysdate</th>
-                            <th>Time Spent</th>
-                            <th>Related Tickets</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in tickets_by_analyst_consultant_scheduled %}
-                        <tr>
-                            <td class="text-info">{{ item.analyst_consultant__name }}</td>
-                            <td class="text-info">{{ item.activity_importance }}</td>
-                            <td class="text-info">{{ item.ticket_id }}</td>
-                            <td class="text-info">{{ item.sysdate }}</td>
-                            <td class="text-info">{{ item.time_spent }}</td>
-                            <td class="text-info">{{ item.related_tickets }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="6" class="text-center text-muted">No scheduled tickets</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <table class="table table-striped table-bordered table-hover"><thead><tr><th>Analyst</th><th>Activity Importance</th><th>Ticket ID</th><th>Sysdate</th><th>Time Spent</th><th>Related Tickets</th></tr></thead><tbody>
+                    {% for item in tickets_by_analyst_consultant_scheduled %}<tr><td class="text-info">{{ item.analyst_consultant__name }}</td><td class="text-info">{{ item.activity_importance }}</td><td class="text-info">{{ item.ticket_id }}</td><td class="text-info">{{ item.sysdate }}</td><td class="text-info">{{ item.time_spent }}</td><td class="text-info">{{ item.related_tickets }}</td></tr>{% empty %}<tr><td colspan="6" class="text-center text-muted">No scheduled tickets</td></tr>{% endfor %}
+                </tbody></table>
             </div>
 
-            <!-- Re-Opened Tickets -->
             <div class="ticket-section" data-section="reopened">
                 <h3>Re-Opened Tickets <strong>{{ re_opened_count }}</strong></h3>
-                <table class="table table-striped table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th>Analyst</th>
-                            <th>Activity Importance</th>
-                            <th>Ticket ID</th>
-                            <th>Sysdate</th>
-                            <th>Time Spent</th>
-                            <th>Related Tickets</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in tickets_by_analyst_consultant_re_opened %}
-                        <tr>
-                            <td class="text-danger">{{ item.analyst_consultant__name }}</td>
-                            <td class="text-danger">{{ item.activity_importance }}</td>
-                            <td class="text-danger">{{ item.ticket_id }}</td>
-                            <td class="text-danger">{{ item.sysdate }}</td>
-                            <td class="text-danger">{{ item.time_spent }}</td>
-                            <td class="text-danger">{{ item.related_tickets }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="6" class="text-center text-muted">No re-opened tickets</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <table class="table table-striped table-bordered table-hover"><thead><tr><th>Analyst</th><th>Activity Importance</th><th>Ticket ID</th><th>Sysdate</th><th>Time Spent</th><th>Related Tickets</th></tr></thead><tbody>
+                    {% for item in tickets_by_analyst_consultant_re_opened %}<tr><td class="text-danger">{{ item.analyst_consultant__name }}</td><td class="text-danger">{{ item.activity_importance }}</td><td class="text-danger">{{ item.ticket_id }}</td><td class="text-danger">{{ item.sysdate }}</td><td class="text-danger">{{ item.time_spent }}</td><td class="text-danger">{{ item.related_tickets }}</td></tr>{% empty %}<tr><td colspan="6" class="text-center text-muted">No re-opened tickets</td></tr>{% endfor %}
+                </tbody></table>
             </div>
 
-            <!-- In Progress -->
             <div class="ticket-section" data-section="inprogress">
                 <h3>In Progress | On Going Tickets <strong>{{ inprogress_ongoing_count }}</strong></h3>
-                <table class="table table-striped table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th>Analyst</th>
-                            <th>Activity Importance</th>
-                            <th>Ticket ID</th>
-                            <th>Sysdate</th>
-                            <th>Time Spent</th>
-                            <th>Related Tickets</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in tickets_by_analyst_consultant_inprogress_ongoing %}
-                        <tr>
-                            <td class="text-info">{{ item.analyst_consultant__name }}</td>
-                            <td class="text-info">{{ item.activity_importance }}</td>
-                            <td class="text-info">{{ item.ticket_id }}</td>
-                            <td class="text-info">{{ item.sysdate }}</td>
-                            <td class="text-info">{{ item.time_spent }}</td>
-                            <td class="text-info">{{ item.related_tickets }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="6" class="text-center text-muted">No in progress tickets</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <table class="table table-striped table-bordered table-hover"><thead><tr><th>Analyst</th><th>Activity Importance</th><th>Ticket ID</th><th>Sysdate</th><th>Time Spent</th><th>Related Tickets</th></tr></thead><tbody>
+                    {% for item in tickets_by_analyst_consultant_inprogress_ongoing %}<tr><td class="text-info">{{ item.analyst_consultant__name }}</td><td class="text-info">{{ item.activity_importance }}</td><td class="text-info">{{ item.ticket_id }}</td><td class="text-info">{{ item.sysdate }}</td><td class="text-info">{{ item.time_spent }}</td><td class="text-info">{{ item.related_tickets }}</td></tr>{% empty %}<tr><td colspan="6" class="text-center text-muted">No in progress tickets</td></tr>{% endfor %}
+                </tbody></table>
             </div>
 
-            <!-- Pending Customer -->
             <div class="ticket-section" data-section="pending-customer">
                 <h3>Pending Customer Tickets <strong>{{ pending_customer_count }}</strong></h3>
-                <table class="table table-striped table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th>Analyst</th>
-                            <th>Activity Importance</th>
-                            <th>Ticket ID</th>
-                            <th>Sysdate</th>
-                            <th>Time Spent</th>
-                            <th>Related Tickets</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in tickets_by_analyst_consultant_pending_customer %}
-                        <tr>
-                            <td style="color: #bdbdbd">{{ item.analyst_consultant__name }}</td>
-                            <td style="color: #bdbdbd">{{ item.activity_importance }}</td>
-                            <td style="color: #bdbdbd">{{ item.ticket_id }}</td>
-                            <td style="color: #bdbdbd">{{ item.sysdate }}</td>
-                            <td style="color: #bdbdbd">{{ item.time_spent }}</td>
-                            <td style="color: #bdbdbd">{{ item.related_tickets }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="6" class="text-center text-muted">No pending customer tickets</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <table class="table table-striped table-bordered table-hover"><thead><tr><th>Analyst</th><th>Activity Importance</th><th>Ticket ID</th><th>Sysdate</th><th>Time Spent</th><th>Related Tickets</th></tr></thead><tbody>
+                    {% for item in tickets_by_analyst_consultant_pending_customer %}<tr><td style="color: #bdbdbd">{{ item.analyst_consultant__name }}</td><td style="color: #bdbdbd">{{ item.activity_importance }}</td><td style="color: #bdbdbd">{{ item.ticket_id }}</td><td style="color: #bdbdbd">{{ item.sysdate }}</td><td style="color: #bdbdbd">{{ item.time_spent }}</td><td style="color: #bdbdbd">{{ item.related_tickets }}</td></tr>{% empty %}<tr><td colspan="6" class="text-center text-muted">No pending customer tickets</td></tr>{% endfor %}
+                </tbody></table>
             </div>
 
-            <!-- Pending 3rd Party -->
             <div class="ticket-section" data-section="pending-3rd">
                 <h3>Pending 3rd Party Tickets <strong>{{ pending_3rd_party_count }}</strong></h3>
-                <table class="table table-striped table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th>Analyst</th>
-                            <th>Activity Importance</th>
-                            <th>Ticket ID</th>
-                            <th>Sysdate</th>
-                            <th>Time Spent</th>
-                            <th>Related Tickets</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in tickets_by_analyst_consultant_pending_3rd_party %}
-                        <tr>
-                            <td class="text-success">{{ item.analyst_consultant__name }}</td>
-                            <td class="text-success">{{ item.activity_importance }}</td>
-                            <td class="text-success">{{ item.ticket_id }}</td>
-                            <td class="text-success">{{ item.sysdate }}</td>
-                            <td class="text-success">{{ item.time_spent }}</td>
-                            <td class="text-success">{{ item.related_tickets }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="6" class="text-center text-muted">No pending 3rd party tickets</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <table class="table table-striped table-bordered table-hover"><thead><tr><th>Analyst</th><th>Activity Importance</th><th>Ticket ID</th><th>Sysdate</th><th>Time Spent</th><th>Related Tickets</th></tr></thead><tbody>
+                    {% for item in tickets_by_analyst_consultant_pending_3rd_party %}<tr><td class="text-success">{{ item.analyst_consultant__name }}</td><td class="text-success">{{ item.activity_importance }}</td><td class="text-success">{{ item.ticket_id }}</td><td class="text-success">{{ item.sysdate }}</td><td class="text-success">{{ item.time_spent }}</td><td class="text-success">{{ item.related_tickets }}</td></tr>{% empty %}<tr><td colspan="6" class="text-center text-muted">No pending 3rd party tickets</td></tr>{% endfor %}
+                </tbody></table>
             </div>
 
-            <!-- Pending Analysis -->
             <div class="ticket-section" data-section="pending-analysis">
                 <h3>Pending Analysis Tickets <strong>{{ pending_analysis_count }}</strong></h3>
-                <table class="table table-striped table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th>Analyst</th>
-                            <th>Activity Importance</th>
-                            <th>Ticket ID</th>
-                            <th>Sysdate</th>
-                            <th>Time Spent</th>
-                            <th>Related Tickets</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in tickets_by_analyst_consultant_pending_analysis %}
-                        <tr>
-                            <td class="text-primary">{{ item.analyst_consultant__name }}</td>
-                            <td class="text-primary">{{ item.activity_importance }}</td>
-                            <td class="text-primary">{{ item.ticket_id }}</td>
-                            <td class="text-primary">{{ item.sysdate }}</td>
-                            <td class="text-primary">{{ item.time_spent }}</td>
-                            <td class="text-primary">{{ item.related_tickets }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="6" class="text-center text-muted">No pending analysis tickets</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <table class="table table-striped table-bordered table-hover"><thead><tr><th>Analyst</th><th>Activity Importance</th><th>Ticket ID</th><th>Sysdate</th><th>Time Spent</th><th>Related Tickets</th></tr></thead><tbody>
+                    {% for item in tickets_by_analyst_consultant_pending_analysis %}<tr><td class="text-primary">{{ item.analyst_consultant__name }}</td><td class="text-primary">{{ item.activity_importance }}</td><td class="text-primary">{{ item.ticket_id }}</td><td class="text-primary">{{ item.sysdate }}</td><td class="text-primary">{{ item.time_spent }}</td><td class="text-primary">{{ item.related_tickets }}</td></tr>{% empty %}<tr><td colspan="6" class="text-center text-muted">No pending analysis tickets</td></tr>{% endfor %}
+                </tbody></table>
             </div>
 
-            <!-- Incomplete -->
             <div class="ticket-section" data-section="incomplete">
                 <h3>Incomplete (Pending) Tickets <strong>{{ incomplete_pending_count }}</strong></h3>
-                <table class="table table-striped table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th>Analyst</th>
-                            <th>Activity Importance</th>
-                            <th>Ticket ID</th>
-                            <th>Sysdate</th>
-                            <th>Time Spent</th>
-                            <th>Related Tickets</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in tickets_by_analyst_consultant_incomplete_pending %}
-                        <tr>
-                            <td class="text-warning">{{ item.analyst_consultant__name }}</td>
-                            <td class="text-warning">{{ item.activity_importance }}</td>
-                            <td class="text-warning">{{ item.ticket_id }}</td>
-                            <td class="text-warning">{{ item.sysdate }}</td>
-                            <td class="text-warning">{{ item.time_spent }}</td>
-                            <td class="text-warning">{{ item.related_tickets }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr><td colspan="6" class="text-center text-muted">No incomplete tickets</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <table class="table table-striped table-bordered table-hover"><thead><tr><th>Analyst</th><th>Activity Importance</th><th>Ticket ID</th><th>Sysdate</th><th>Time Spent</th><th>Related Tickets</th></tr></thead><tbody>
+                    {% for item in tickets_by_analyst_consultant_incomplete_pending %}<tr><td class="text-warning">{{ item.analyst_consultant__name }}</td><td class="text-warning">{{ item.activity_importance }}</td><td class="text-warning">{{ item.ticket_id }}</td><td class="text-warning">{{ item.sysdate }}</td><td class="text-warning">{{ item.time_spent }}</td><td class="text-warning">{{ item.related_tickets }}</td></tr>{% empty %}<tr><td colspan="6" class="text-center text-muted">No incomplete tickets</td></tr>{% endfor %}
+                </tbody></table>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Filter Script -->
+    <script src="{% static 'js/home_charts.js' %}"></script>
     <script>
+        // Filter tables script
         document.addEventListener('DOMContentLoaded', function() {
-            // Map checkbox IDs to section data attributes
-            const filterMap = {
-                'filter-open': 'open',
-                'filter-scheduled': 'scheduled',
-                'filter-reopened': 'reopened',
-                'filter-inprogress': 'inprogress',
-                'filter-pending-customer': 'pending-customer',
-                'filter-pending-3rd': 'pending-3rd',
-                'filter-pending-analysis': 'pending-analysis',
-                'filter-incomplete': 'incomplete'
-            };
-
-            // Add event listeners to all filter checkboxes
+            const filterMap = {'filter-open': 'open', 'filter-scheduled': 'scheduled', 'filter-reopened': 'reopened', 'filter-inprogress': 'inprogress', 'filter-pending-customer': 'pending-customer', 'filter-pending-3rd': 'pending-3rd', 'filter-pending-analysis': 'pending-analysis', 'filter-incomplete': 'incomplete'};
             Object.keys(filterMap).forEach(filterId => {
                 const checkbox = document.getElementById(filterId);
                 const section = document.querySelector(`[data-section="${filterMap[filterId]}"]`);
-                
                 if (checkbox && section) {
                     checkbox.addEventListener('change', function() {
-                        if (this.checked) {
-                            section.classList.remove('hidden');
-                        } else {
-                            section.classList.add('hidden');
-                        }
+                        section.classList.toggle('hidden', !this.checked);
                     });
                 }
             });
         });
     </script>
 </body>
-
 </html>

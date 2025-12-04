@@ -5,7 +5,6 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.http import JsonResponse
 import json
-from django.utils.timezone import now
 from django.contrib.auth.decorators import login_required
 
 from .models import (
