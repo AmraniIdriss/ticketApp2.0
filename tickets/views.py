@@ -16,7 +16,7 @@ from .models import (
 
 
 # -----------------------
-# Ticket creation
+# Ticket creation -
 # -----------------------
 def create_ticket(request):
     if request.method == "POST":
