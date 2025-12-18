@@ -1,205 +1,284 @@
-# Project Documentation
+# TicketApp – Technical Documentation
 
-## 📑 Table of Contents
-- [1. Users App](#1-users-app)  
-  - [register_view(request)](#register_viewrequest)  
-  - [login_view(request)](#login_viewrequest)  
-  - [logout_view(request)](#logout_viewrequest)  
-  - [home_view(request)](#home_viewrequest)  
-- [2. Tickets App](#2-tickets-app)
-  - [create_ticket(request)](#create_ticketrequest)  
-  - [view_tickets(request)](#view_ticketsrequest)  
-  - [edit_ticket(request)](#edit_ticketrequest)  
-  - [start_timer(request)](#start_timerrequest)  
-  - [stop_timer(request)](#stop_timerrequest)  
-  - [Models](#models)  
-- [3. Reports App](#3-reports-app)
-  - [api_echarts_tickets_by_analyst(request)](#api_echarts_tickets_by_analystrequest)  
-  - [home_reports(request)](#home_reportsrequest)  
-- [4. Emails App](#4-emails-app)
-  - [ticket_email_form(request, ticket_id)](#ticket_email_formrequest-ticket_id)  
-  - [normalize_activity_type(name)](#normalize_activity_typename)  
-  - [parse_resolution_description(description)](#parse_resolution_descriptiondescription)  
-  - [build_ticket_context(ticket, activity_type_name, email_state_override=None)](#build_ticket_contextticket-activity_type_name-email_state_overridenone)  
-  - [send_ticket_email(ticket_id, recipient_emails, cc_emails, bcc_emails, attachment=None, first_email=False)](#send_ticket_emailticket_id-recipient_emails-cc_emails-bcc_emails-attachmentnone-first_emailfalse)  
-  - [Forms](#forms)  
-    - [EmailTicketForm](#emailticketform)  
-    - [_validate_emails(emails_string, required=False)](#_validate_emailsemails_string-requiredfalse)
+## 🎯 Application Purpose
+
+TicketApp is an internal web application designed for **ticket management focused on activity tracking, traceability, time measurement, and client communication**. It covers the full ticket lifecycle: creation, processing, time tracking, reporting, and email notifications.
+
+The application is intentionally **centralized, explicit, and controlled**, avoiding opaque automations. Every critical action is deliberately triggered by the user.
+
+---
+
+## 🧱 Overall Architecture
+
+* **Framework**: Django (MVT architecture)
+* **Functional split**:
+
+  * `users` → authentication & access control
+  * `tickets` → core business logic (tickets, states, timers)
+  * `reports` → statistics & visualizations
+  * `emails` → external communication
+
+Each app has a **clear responsibility**. There is no functional overlap.
 
 ---
 
 ## 1️⃣ Users App
-### Views
-#### register_view(request)
-**Purpose:** Handles user registration.  
-**Behaviour:**  
-- Checks if username exists.  
-- Creates a new user.  
-- Redirects to the login page.  
-- Renders registration template (`users/register.html`).
 
-#### login_view(request)
-**Purpose:** Handles user login.  
-**Behaviour:**  
-- Checks if the request method is `POST`.  
-- Retrieves `'username'` and `'password'` from request data.  
-- If authentication succeeds:  
-  - Logs in the user using `login()`.  
-  - Redirects to the home page (`/`).  
-- If authentication fails:  
-  - Displays an error message (`messages.error`).  
-- If request method is not `POST` or login fails:  
-  - Renders the login template (`users/login.html`).
+### Role
 
-#### logout_view(request)
-**Purpose:** Handles user logout.  
-**Behaviour:**  
-- Logs out the current user using `logout()`.  
-- Redirects to the login page (`users/login.html`).  
-- Displays a confirmation message (`messages.success`).
-
-#### home_view(request)
-**Purpose:** Displays the main dashboard for authenticated users.  
-**Behaviour:**  
-- Fetches tickets or other dashboard data.  
-- Renders the dashboard template (`users/home.html`).
+Strictly handles authentication and access to the application. No business logic is implemented here.
 
 ---
 
-## 2️⃣ Tickets App
-### Views
+### register_view(request)
 
-#### create_ticket(request)
-**Purpose:** Handles the creation of a new ticket and redirects to the email form.  
-**Behaviour:**  
-- Checks if request method is `POST`.  
-- Retrieves form data.  
-- Fetches related model objects using `get_object_or_404`.  
-- Creates a new `TicketsActivityticket` record.  
-- Sets `related_ticket` to itself.  
-- If state is `"⇶ Inprogress | OnGoing"`, starts the timer automatically.  
-- Redirects to email form (`ticket_email_form`) after creation.  
-- If request method is `GET`, renders ticket creation form with dropdown lists.  
+**Responsibility**: User account creation.
 
-**Template rendered:** `tickets/create_ticket.html`.
+* Checks username uniqueness
+* Creates the user
+* Redirects to the login page
 
-#### view_tickets(request)
-**Purpose:** Displays a list of all existing tickets.  
-**Behaviour:**  
-- Retrieves all tickets ordered by `ticket_id`.  
-- Renders the ticket list page.  
+📌 Design choice: no complex registration workflow (email validation, tokens, etc.). This is intentionally minimal.
 
-**Template rendered:** `tickets/view_tickets.html`.
+---
 
-#### edit_ticket(request)
-**Purpose:** Allows editing an existing ticket and may create a new ticket depending on state transitions.  
-**Behaviour:**  
-- Checks if the ticket is in a non-editable state.  
-- Dynamically determines which fields to show based on `activity_type`.  
-- On `POST`:  
-  - Validates new consultant and state.  
-  - Updates ticket fields and builds `activity_resolution_description`.  
-  - Updates analyst consultant and current state.  
-  - Creates a new ticket if state has a mapped next state (`STATE_MAPPING`).  
-  - Redirects to email form if state triggers an email (`EMAIL_TRIGGER_STATES`).  
-- On `GET`:  
-  - Renders edit form with relevant fields and available states.  
+### login_view(request)
 
-**Template rendered:** `tickets/edit_ticket.html`.
+**Responsibility**: User authentication.
 
-#### start_timer(request)
-**Purpose:** Starts the activity timer for a ticket.  
-**Behaviour:**  
-- Validates that the ticket exists and is not already finished or running.  
-- Ensures ticket state allows starting timer.  
-- Sets `activity_start` to current time and clears `activity_end`.  
-- Returns JSON response with status and timestamp.  
+* Authenticates via `username / password`
+* Explicit error handling
+* Redirects to the main dashboard
 
-#### stop_timer(request)
-**Purpose:** Stops the activity timer for a ticket.  
-**Behaviour:**  
-- Validates that the ticket exists and timer was started.  
-- Optionally updates ticket state.  
-- Sets `activity_end` to current time.  
-- Calculates elapsed time and updates `time_spent`.  
-- Returns JSON response with status, timestamps, and total time spent.
+📌 Advantage: predictable and transparent behavior.
+📌 Drawback: no advanced security features (MFA), acceptable for an internal tool.
 
-### Models
-**Purpose:** The tickets app contains the models that define the core structure of the ticket system, including clients, activity types, states, transitions, and the main ticket table. It serves as the foundation for creating, editing, listing, and managing the lifecycle of each ticket.
+---
+
+### logout_view(request)
+
+**Responsibility**: Clean user logout.
+
+* Invalidates the session
+* Redirects to login
+
+---
+
+### home_view(request)
+
+**Responsibility**: Application entry point.
+
+* Displays the main dashboard
+* Acts as the navigation hub
+
+---
+
+## 2️⃣ Tickets App (Core Business Logic)
+
+### Philosophy
+
+A ticket represents **a traceable activity over time**, defined by:
+
+* a state
+* an activity type
+* an assigned analyst
+* a controlled lifecycle
+
+State transitions are **explicit and constrained**, never implicit.
+
+---
+
+### create_ticket(request)
+
+**Responsibility**: Initial ticket creation.
+
+**Key behaviors**:
+
+* Creates a `TicketsActivityticket`
+* Self-references via `related_ticket`
+* Automatically starts the timer if the state is *InProgress*
+* Immediately redirects to the email form
+
+📌 Advantage: no “silent” ticket creation.
+📌 Drawback: strong dependency on the email step (intentional).
+
+---
+
+### view_tickets(request)
+
+**Responsibility**: Global ticket visualization.
+
+* Displays all tickets
+* Clear chronological ordering
+
+📌 Pagination is intentionally omitted for readability over performance.
+
+---
+
+### edit_ticket(request)
+
+**Responsibility**: Ticket evolution and state changes.
+
+**Critical points**:
+
+* Fields are displayed dynamically based on activity type
+* Builds `activity_resolution_description`
+* Handles controlled state transitions
+* Automatically creates a **new ticket** when a mapped next state exists
+
+📌 Advantage: clean, non-destructive history.
+📌 Drawback: more complex logic to maintain.
+
+---
+
+### start_timer(request)
+
+**Responsibility**: Start activity time tracking.
+
+* Strict state validation
+* Protection against double starts
+* JSON response for frontend integration
+
+📌 Technical choice: simple API, easy to consume via JavaScript.
+
+---
+
+### stop_timer(request)
+
+**Responsibility**: Stop the timer and compute elapsed time.
+
+* Precise elapsed time calculation
+* Cumulative update of `time_spent`
+
+📌 Advantage: accuracy and auditability.
+📌 Drawback: relies on timestamp integrity.
+
+---
+
+### Models (Tickets)
+
+The models define:
+
+* Clients
+* Activity types
+* States
+* Transition mappings
+* The main ticket entity
+
+📌 The entire workflow is **data-driven**, not controlled by hidden logic.
 
 ---
 
 ## 3️⃣ Reports App
-### Views
 
-#### api_echarts_tickets_by_analyst(request)
-**Purpose:** Provides JSON data for ECharts visualizations, showing the number of tickets per analyst.  
-**Behaviour:** 
-- Accepts optional GET parameters: `start_date`, `end_date`, `current_state`.  
-- Filters tickets based on provided parameters.  
-- Aggregates ticket counts grouped by analyst.  
-- Returns a JSON response in the format `[{name, value}, ...]` suitable for charts.
+### Purpose
 
-#### home_reports(request)
-**Purpose:** Displays ticket statistics and charts for the web dashboard.  
-**Behaviour:** 
-- Accepts optional GET parameters: `start_date`, `end_date`, `current_state`, `analyst_consultant`.  
-- Filters tickets according to the provided parameters.  
-- Aggregates daily ticket counts.  
-- Generates a Plotly bar chart for tickets per day.  
-- Renders the `reports/home_reports.html` template with chart HTML.
+Provide a **high-level analytical view** of activity without modifying data.
+
+---
+
+### api_echarts_tickets_by_analyst(request)
+
+**Responsibility**: Feed chart visualizations.
+
+* Date range filtering
+* Grouping by analyst
+* JSON output ready for ECharts
+
+📌 Design choice: dedicated API → frontend decoupling.
+
+---
+
+### home_reports(request)
+
+**Responsibility**: Statistics dashboard.
+
+* Daily ticket aggregation
+* Plotly-generated charts
+
+📌 Drawback: server-side rendering (less scalable).
+📌 Advantage: simplicity and reliability.
 
 ---
 
 ## 4️⃣ Emails App
-### Views
 
-#### ticket_email_form(request, ticket_id)
-**Purpose:** Handles the email form for sending ticket-related emails.  
-**Behaviour:**  
-- Accepts POST and GET requests.  
-- On POST:
-    - Validates the form (`EmailTicketForm`).  
-    - Cleans and parses email addresses (TO, CC, BCC).  
-    - Determines if it is the first email for the ticket.  
-    - Sends the email using `send_ticket_email()`.  
-    - Marks the ticket as having its first email sent if successful.  
-    - Displays success or error messages via `messages`.  
-- On GET:
-    - Renders the email form template.  
+### Philosophy
 
-**Template rendered:** `emails/ticket_email_form.html`.
+Every email is **contextual, justified, and traceable**.
 
-### Utility Functions
+---
 
-#### normalize_activity_type(name)
-**Purpose:** Standardizes activity type names by removing special characters and spaces.
+### ticket_email_form(request, ticket_id)
 
-#### parse_resolution_description(description)
-**Purpose:** Extracts structured fields from `activity_resolution_description` for use in email templates.
+**Responsibility**: Email sending interface.
 
-#### build_ticket_context(ticket, activity_type_name, email_state_override=None)
-**Purpose:** Builds the context dictionary for rendering email templates, combining ticket data and parsed resolution fields.
+* Strict validation
+* First-email tracking
+* Clear user feedback
 
-#### send_ticket_email(ticket_id, recipient_emails, cc_emails, bcc_emails, attachment=None, first_email=False)
-**Purpose:** Core function that builds and sends the email for a specific ticket, including HTML and plain-text versions, attachments, and dynamic state handling.
+📌 No email is sent without explicit human confirmation.
 
-### Forms
+---
 
-#### EmailTicketForm
-**Purpose:** Handles user input for sending emails related to tickets.  
-**Behaviour:**  
-- Provides fields for To, CC, BCC, and optional attachment.  
-- Validates all email fields individually using Django’s `validate_email`.  
-- Ensures the To field is mandatory, while CC and BCC are optional.  
-- Supports multiple emails separated by commas.  
-- Provides user-friendly error messages for invalid or missing emails.
+### normalize_activity_type(name)
 
-**Fields:**  
-- `to_email` – Required; comma-separated list of recipient emails.  
-- `cc_email` – Optional; comma-separated list of CC emails.  
-- `bcc_email` – Optional; comma-separated list of BCC emails.  
-- `attachment` – Optional file upload.
+Standardizes activity type names.
 
-#### _validate_emails(emails_string, required=False)
-**Purpose:** Internal function to split, clean, and validate multiple email addresses.
+---
+
+### parse_resolution_description(description)
+
+Transforms free text into structured data.
+
+📌 Advantage: rich, dynamic email content.
+📌 Drawback: strongly depends on text format consistency.
+
+---
+
+### build_ticket_context(...)
+
+Builds the complete email rendering context.
+
+---
+
+### send_ticket_email(...)
+
+**Critical function**.
+
+* HTML and plain-text versions
+* Attachment handling
+* Email state management
+
+📌 Centralization ensures full control.
+📌 Watchpoint: function complexity.
+
+---
+
+### EmailTicketForm
+
+Robust email validation.
+
+* Multiple addresses supported
+* Explicit error messages
+
+📌 Clear design choice: UX clarity over permissiveness.
+
+---
+
+## ✅ Conclusion
+
+TicketApp is a **deliberately structured** application focused on **control, auditability, and business clarity**.
+
+It prioritizes:
+
+* readability
+* traceability
+* user responsibility
+
+at the expense of:
+
+* excessive automation
+* unnecessary complexity
+
+This positioning is fully consistent with a **professional internal tool**.
